@@ -59,92 +59,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     Enter the details below for you and your peers.</p>
     <p>
     1 = Very poor, or even obstructive, contribution to the project process<br>
+    2 = Poor contribution to the project process<br>
+    3 = acceptable contribution to the project process<br>
+    4 = good contribution to the project process<br>
+    5 = excellent contribution to the project process<br>
+    You need to fill in a mark from the scale for each one of 5 performance criteria.<br>
+    </p>
 
 <?php
-// Renders a form for evaluating a single peer (team member)
-function speval_render_form_for_peer($peerid, $peername) {
-    ?>
-    <!-- Evaluation form for a single peer -->
-    <form method="post" style="border:1px solid #ccc; margin-bottom:20px; padding:15px;">
-        <!-- Hidden fields for session and peer ID -->
-        <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>" />
-        <input type="hidden" name="peerid" value="<?php echo (int)$peerid; ?>" />
-        <!-- Peer name heading -->
-        <h3>Evaluate: <?php echo htmlspecialchars($peername); ?></h3>
-        <!-- Criteria 1 -->
-        <div class="form-row">
-            <label for="c1_<?php echo (int)$peerid; ?>">1. The amount of work and effort put into the Requirements and Analysis Document, the Project Management Plan, and the Design Document.</label>
-            <select name="c1" id="c1_<?php echo (int)$peerid; ?>" required>
-                <option value="" disabled selected>Select a rating</option>
-                <option value="1">1 - Very poor</option>
-                <option value="2">2 - Poor</option>
-                <option value="3">3 - Acceptable</option>
-                <option value="4">4 - Good</option>
-                <option value="5">5 - Excellent</option>
-            </select>
-        </div>
-        <!-- Criteria 2 -->
-        <div class="form-row">
-            <label for="c2_<?php echo (int)$peerid; ?>">2. Willingness to work as part of the group and taking responsibility in the group.</label>
-            <select name="c2" id="c2_<?php echo (int)$peerid; ?>" required>
-                <option value="" disabled selected>Select a rating</option>
-                <option value="1">1 - Very poor</option>
-                <option value="2">2 - Poor</option>
-                <option value="3">3 - Acceptable</option>
-                <option value="4">4 - Good</option>
-                <option value="5">5 - Excellent</option>
-            </select>
-        </div>
-        <!-- Criteria 3 -->
-        <div class="form-row">
-            <label for="c3_<?php echo (int)$peerid; ?>">3. Communication within the group and participation in group meetings.</label>
-            <select name="c3" id="c3_<?php echo (int)$peerid; ?>" required>
-                <option value="" disabled selected>Select a rating</option>
-                <option value="1">1 - Very poor</option>
-                <option value="2">2 - Poor</option>
-                <option value="3">3 - Acceptable</option>
-                <option value="4">4 - Good</option>
-                <option value="5">5 - Excellent</option>
-            </select>
-        </div>
-        <!-- Criteria 4 -->
-        <div class="form-row">
-            <label for="c4_<?php echo (int)$peerid; ?>">4. Contribution to the management of the project, e.g. work delivered on time.</label>
-            <select name="c4" id="c4_<?php echo (int)$peerid; ?>" required>
-                <option value="" disabled selected>Select a rating</option>
-                <option value="1">1 - Very poor</option>
-                <option value="2">2 - Poor</option>
-                <option value="3">3 - Acceptable</option>
-                <option value="4">4 - Good</option>
-                <option value="5">5 - Excellent</option>
-            </select>
-        </div>
-        <!-- Criteria 5 -->
-        <div class="form-row">
-            <label for="c5_<?php echo (int)$peerid; ?>">5. Problem solving and creativity on behalf of the group’s work.</label>
-            <select name="c5" id="c5_<?php echo (int)$peerid; ?>" required>
-                <option value="" disabled selected>Select a rating</option>
-                <option value="1">1 - Very poor</option>
-                <option value="2">2 - Poor</option>
-                <option value="3">3 - Acceptable</option>
-                <option value="4">4 - Good</option>
-                <option value="5">5 - Excellent</option>
-            </select>
-        </div>
-        <!-- Comment field -->
-        <div class="form-row">
-            <label for="comment_<?php echo (int)$peerid; ?>">Comment:</label>
-            <textarea name="comment" id="comment_<?php echo (int)$peerid; ?>" rows="4" cols="40"></textarea>
-        </div>
-        <!-- Submit button -->
-        <div class="form-actions">
-            <button type="submit">Submit</button>
-        </div>
-    </form>
-    <?php
-}
-
-// Get all group/team members (including self) and render a form for each
+// Get all group/team members (including self) and render a single form for all
 require_once($CFG->dirroot . '/user/lib.php');
 $courseid = isset($COURSE->id) ? $COURSE->id : (isset($course->id) ? $course->id : 0);
 $groupids = $DB->get_fieldset_select('groups', 'id', 'courseid = ?', [$courseid]);
@@ -161,6 +84,8 @@ $allmemberids = array_unique($allmemberids);
 if (!empty($allmemberids)) {
     list($in_sql, $params) = $DB->get_in_or_equal($allmemberids);
     $students = $DB->get_records_select('user', 'id ' . $in_sql, $params, 'lastname,firstname', '*');
+    echo '<form method="post">';
+    echo '<input type="hidden" name="sesskey" value="' . sesskey() . '" />';
     foreach ($students as $student) {
         // Ensure all required fields for fullname()
         foreach ([
@@ -170,8 +95,63 @@ if (!empty($allmemberids)) {
                 $student->$field = '';
             }
         }
-        // Render a form for this peer
-        speval_render_form_for_peer($student->id, fullname($student));
+        $peerid = (int)$student->id;
+        $peername = fullname($student);
+        echo '<div style="border:1px solid #ccc; margin-bottom:20px; padding:15px;">';
+        echo '<input type="hidden" name="peerid[]" value="' . $peerid . '" />';
+        echo '<h3>Evaluate: ' . htmlspecialchars($peername) . '</h3>';
+        echo '<div class="form-row">';
+        echo '<label for="c1_' . $peerid . '">1. The amount of work and effort put into the Requirements and Analysis Document, the Project Management Plan, and the Design Document.</label>';
+        echo '<select name="c1[' . $peerid . ']" id="c1_' . $peerid . '" required>';
+        echo '<option value="" disabled selected>Select a rating</option>';
+        for ($i = 1; $i <= 5; $i++) {
+            $labels = [1=>'1 - Very poor',2=>'2 - Poor',3=>'3 - Acceptable',4=>'4 - Good',5=>'5 - Excellent'];
+            echo '<option value="' . $i . '">' . $labels[$i] . '</option>';
+        }
+        echo '</select></div>';
+        echo '<div class="form-row">';
+        echo '<label for="c2_' . $peerid . '">2. Willingness to work as part of the group and taking responsibility in the group.</label>';
+        echo '<select name="c2[' . $peerid . ']" id="c2_' . $peerid . '" required>';
+        echo '<option value="" disabled selected>Select a rating</option>';
+        for ($i = 1; $i <= 5; $i++) {
+            $labels = [1=>'1 - Very poor',2=>'2 - Poor',3=>'3 - Acceptable',4=>'4 - Good',5=>'5 - Excellent'];
+            echo '<option value="' . $i . '">' . $labels[$i] . '</option>';
+        }
+        echo '</select></div>';
+        echo '<div class="form-row">';
+        echo '<label for="c3_' . $peerid . '">3. Communication within the group and participation in group meetings.</label>';
+        echo '<select name="c3[' . $peerid . ']" id="c3_' . $peerid . '" required>';
+        echo '<option value="" disabled selected>Select a rating</option>';
+        for ($i = 1; $i <= 5; $i++) {
+            $labels = [1=>'1 - Very poor',2=>'2 - Poor',3=>'3 - Acceptable',4=>'4 - Good',5=>'5 - Excellent'];
+            echo '<option value="' . $i . '">' . $labels[$i] . '</option>';
+        }
+        echo '</select></div>';
+        echo '<div class="form-row">';
+        echo '<label for="c4_' . $peerid . '">4. Contribution to the management of the project, e.g. work delivered on time.</label>';
+        echo '<select name="c4[' . $peerid . ']" id="c4_' . $peerid . '" required>';
+        echo '<option value="" disabled selected>Select a rating</option>';
+        for ($i = 1; $i <= 5; $i++) {
+            $labels = [1=>'1 - Very poor',2=>'2 - Poor',3=>'3 - Acceptable',4=>'4 - Good',5=>'5 - Excellent'];
+            echo '<option value="' . $i . '">' . $labels[$i] . '</option>';
+        }
+        echo '</select></div>';
+        echo '<div class="form-row">';
+        echo '<label for="c5_' . $peerid . '">5. Problem solving and creativity on behalf of the group’s work.</label>';
+        echo '<select name="c5[' . $peerid . ']" id="c5_' . $peerid . '" required>';
+        echo '<option value="" disabled selected>Select a rating</option>';
+        for ($i = 1; $i <= 5; $i++) {
+            $labels = [1=>'1 - Very poor',2=>'2 - Poor',3=>'3 - Acceptable',4=>'4 - Good',5=>'5 - Excellent'];
+            echo '<option value="' . $i . '">' . $labels[$i] . '</option>';
+        }
+        echo '</select></div>';
+        echo '<div class="form-row">';
+        echo '<label for="comment_' . $peerid . '">Comment:</label>';
+        echo '<textarea name="comment[' . $peerid . ']" id="comment_' . $peerid . '" rows="4" cols="40"></textarea>';
+        echo '</div>';
+        echo '</div>';
     }
+    echo '<div class="form-actions"><button type="submit">Submit All Evaluations</button></div>';
+    echo '</form>';
 }
 
