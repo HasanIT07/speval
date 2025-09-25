@@ -22,6 +22,8 @@ $PAGE->set_url($url);
 $PAGE->requires->css(new moodle_url('/mod/speval/styles.css'));
 
 
+
+// Output the page header and main heading
 echo $OUTPUT->header();
 echo $OUTPUT->heading('Self & Peer Evaluation');
 
@@ -48,79 +50,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 }
 
 ?>
+// Main container for the evaluation forms and instructions
+?>
 <div class="speval-container">
+    <!-- Main heading and instructions for students -->
     <h2>Self & Peer Evaluation</h2>
-    <b><p>Please note:</b> Everything that you put into this form will be kept strictly confidential by the unit coordinator.
-</br></br>
+    <b><p>Please note:</b> Everything that you put into this form will be kept strictly confidential by the unit coordinator.<br><br>
+    Enter the details below for you and your peers.</p>
+    <p>
+    1 = Very poor, or even obstructive, contribution to the project process<br>
 
-Enter the delails below for you and your peers.
-</p>
-
-    <form method="post">
+<?php
+// Renders a form for evaluating a single peer (team member)
+function speval_render_form_for_peer($peerid, $peername) {
+    ?>
+    <!-- Evaluation form for a single peer -->
+    <form method="post" style="border:1px solid #ccc; margin-bottom:20px; padding:15px;">
+        <!-- Hidden fields for session and peer ID -->
         <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>" />
-
-
+        <input type="hidden" name="peerid" value="<?php echo (int)$peerid; ?>" />
+        <!-- Peer name heading -->
+        <h3>Evaluate: <?php echo htmlspecialchars($peername); ?></h3>
+        <!-- Criteria 1 -->
         <div class="form-row">
-            <label for="peerid">Self or Peer User ID:</label>
-            <input type="number" name="peerid" id="peerid" required>
-        </div>
-
-        <!-- Extra dropdown for testing purposes: shows group member names -->
-        <div class="form-row">
-            <label for="testdropdown">Test Dropdown (Student Names):</label>
-            <select name="testdropdown" id="testdropdown">
-                <option value="" disabled selected>Select a student</option>
-                <?php
-                global $COURSE, $USER, $DB, $CFG;
-                require_once($CFG->dirroot . '/user/lib.php');
-                $courseid = isset($COURSE->id) ? $COURSE->id : (isset($course->id) ? $course->id : 0);
-                // Get all group IDs for this user in this course
-                $groupids = $DB->get_fieldset_select('groups', 'id', 'courseid = ?', [$courseid]);
-                $usergroupids = $DB->get_fieldset_select('groups_members', 'groupid', 'userid = ? AND groupid IN (' . implode(',', $groupids) . ')', [$USER->id]);
-                $allmemberids = [$USER->id];
-                if (!empty($usergroupids)) {
-                    list($ingroupsql, $groupparams) = $DB->get_in_or_equal($usergroupids);
-                    $allmemberids = $DB->get_fieldset_select('groups_members', 'userid', 'groupid ' . $ingroupsql, $groupparams);
-                    // Always include self
-                    if (!in_array($USER->id, $allmemberids)) {
-                        $allmemberids[] = $USER->id;
-                    }
-                }
-                $allmemberids = array_unique($allmemberids);
-                if (!empty($allmemberids)) {
-                    list($in_sql, $params) = $DB->get_in_or_equal($allmemberids);
-                    $students = $DB->get_records_select('user', 'id ' . $in_sql, $params, 'lastname,firstname', 'id,firstname,lastname');
-                    foreach ($students as $student) {
-                        $fullname = fullname($student);
-                        echo '<option value="' . $student->id . '">' . s($fullname) . '</option>';
-                    }
-                }
-                ?>
-            </select>
-        </div>
-
-        <p>
-1 = Very poor, or even obstructive, contribution to the project process
-</br>
-2 = Poor contribution to the project process
-</br>
-3 = acceptable contribution to the project process
-</br>
-4 = good contribution to the project process
-</br>
-5 = excellent contribution to the project process
-</br></br>
-<b>
-Using the assessment scales above. Fill out the Following
-</br></b>
-</p>
-
-        <div class="form-row">
-            <label for="c1">1.	The amount of work and effort put into the Requirements and Analysis
-Document, the Project Management Plan, and the Design Document.
-</label>
-            <!-- Changed to dropdown (select) for multiple choice (1-5) -->
-            <select name="c1" id="c1" required>
+            <label for="c1_<?php echo (int)$peerid; ?>">1. The amount of work and effort put into the Requirements and Analysis Document, the Project Management Plan, and the Design Document.</label>
+            <select name="c1" id="c1_<?php echo (int)$peerid; ?>" required>
                 <option value="" disabled selected>Select a rating</option>
                 <option value="1">1 - Very poor</option>
                 <option value="2">2 - Poor</option>
@@ -129,10 +83,10 @@ Document, the Project Management Plan, and the Design Document.
                 <option value="5">5 - Excellent</option>
             </select>
         </div>
-
+        <!-- Criteria 2 -->
         <div class="form-row">
-            <label for="c2">2.	Willingness to work as part of the group and taking responsibility in the group.</label>
-            <select name="c2" id="c2" required>
+            <label for="c2_<?php echo (int)$peerid; ?>">2. Willingness to work as part of the group and taking responsibility in the group.</label>
+            <select name="c2" id="c2_<?php echo (int)$peerid; ?>" required>
                 <option value="" disabled selected>Select a rating</option>
                 <option value="1">1 - Very poor</option>
                 <option value="2">2 - Poor</option>
@@ -141,10 +95,10 @@ Document, the Project Management Plan, and the Design Document.
                 <option value="5">5 - Excellent</option>
             </select>
         </div>
-
+        <!-- Criteria 3 -->
         <div class="form-row">
-            <label for="c3">3.	Communication within the group and participation in group meetings.</label>
-            <select name="c3" id="c3" required>
+            <label for="c3_<?php echo (int)$peerid; ?>">3. Communication within the group and participation in group meetings.</label>
+            <select name="c3" id="c3_<?php echo (int)$peerid; ?>" required>
                 <option value="" disabled selected>Select a rating</option>
                 <option value="1">1 - Very poor</option>
                 <option value="2">2 - Poor</option>
@@ -153,10 +107,10 @@ Document, the Project Management Plan, and the Design Document.
                 <option value="5">5 - Excellent</option>
             </select>
         </div>
-
+        <!-- Criteria 4 -->
         <div class="form-row">
-            <label for="c4">4.	Contribution to the management of the project, e.g. work delivered on time.</label>
-            <select name="c4" id="c4" required>
+            <label for="c4_<?php echo (int)$peerid; ?>">4. Contribution to the management of the project, e.g. work delivered on time.</label>
+            <select name="c4" id="c4_<?php echo (int)$peerid; ?>" required>
                 <option value="" disabled selected>Select a rating</option>
                 <option value="1">1 - Very poor</option>
                 <option value="2">2 - Poor</option>
@@ -165,10 +119,10 @@ Document, the Project Management Plan, and the Design Document.
                 <option value="5">5 - Excellent</option>
             </select>
         </div>
-
+        <!-- Criteria 5 -->
         <div class="form-row">
-            <label for="c5">5.	Problem solving and creativity on behalf of the group’s work.</label>
-            <select name="c5" id="c5" required>
+            <label for="c5_<?php echo (int)$peerid; ?>">5. Problem solving and creativity on behalf of the group’s work.</label>
+            <select name="c5" id="c5_<?php echo (int)$peerid; ?>" required>
                 <option value="" disabled selected>Select a rating</option>
                 <option value="1">1 - Very poor</option>
                 <option value="2">2 - Poor</option>
@@ -177,17 +131,47 @@ Document, the Project Management Plan, and the Design Document.
                 <option value="5">5 - Excellent</option>
             </select>
         </div>
-
+        <!-- Comment field -->
         <div class="form-row">
-            <label for="comment">Comment:</label>
-            <textarea name="comment" id="comment" rows="4" cols="40"></textarea>
+            <label for="comment_<?php echo (int)$peerid; ?>">Comment:</label>
+            <textarea name="comment" id="comment_<?php echo (int)$peerid; ?>" rows="4" cols="40"></textarea>
         </div>
-
+        <!-- Submit button -->
         <div class="form-actions">
             <button type="submit">Submit</button>
         </div>
     </form>
-</div>
-<?php
-echo $OUTPUT->footer();
-?>
+    <?php
+}
+
+// Get all group/team members (including self) and render a form for each
+require_once($CFG->dirroot . '/user/lib.php');
+$courseid = isset($COURSE->id) ? $COURSE->id : (isset($course->id) ? $course->id : 0);
+$groupids = $DB->get_fieldset_select('groups', 'id', 'courseid = ?', [$courseid]);
+$usergroupids = $DB->get_fieldset_select('groups_members', 'groupid', 'userid = ? AND groupid IN (' . implode(',', $groupids) . ')', [$USER->id]);
+$allmemberids = [$USER->id];
+if (!empty($usergroupids)) {
+    list($ingroupsql, $groupparams) = $DB->get_in_or_equal($usergroupids);
+    $allmemberids = $DB->get_fieldset_select('groups_members', 'userid', 'groupid ' . $ingroupsql, $groupparams);
+    if (!in_array($USER->id, $allmemberids)) {
+        $allmemberids[] = $USER->id;
+    }
+}
+$allmemberids = array_unique($allmemberids);
+if (!empty($allmemberids)) {
+    list($in_sql, $params) = $DB->get_in_or_equal($allmemberids);
+    $students = $DB->get_records_select('user', 'id ' . $in_sql, $params, 'lastname,firstname', '*');
+    foreach ($students as $student) {
+        // Ensure all required fields for fullname()
+        foreach ([
+            'firstnamephonetic','lastnamephonetic','middlename','alternatename'
+        ] as $field) {
+            if (!isset($student->$field)) {
+                $student->$field = '';
+            }
+        }
+        // Render a form for this peer
+        speval_render_form_for_peer($student->id, fullname($student));
+    }
+}
+
