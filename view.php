@@ -20,7 +20,6 @@ $url = new moodle_url('/mod/speval/view.php', ['id' => $cm->id]);
 $PAGE->set_url($url);
 
 $selected = 'spe';
-echo print_tabs([$tabs], $selected, null, null, true);
 
 // === Add this line to include your CSS file ===
 $PAGE->requires->css(new moodle_url('/mod/speval/styles.css'));
