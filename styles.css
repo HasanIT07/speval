@@ -1,3 +1,20 @@
+/* Custom styling for activity navigation tabs (secondary nav) to match quiz */
+.nav-tabs .nav-link,
+.nav-tabs .nav-link.active,
+.nav-tabs .dropdown-toggle,
+.secondary-navigation .nav-link,
+.secondary-navigation .nav-link.active {
+    color: #212529 !important; /* Moodle/Bootstrap default text color */
+    font-weight: 500;
+    background: none !important;
+}
+
+.nav-tabs .nav-link.active,
+.secondary-navigation .nav-link.active {
+    border-bottom: 2px solid #0d6efd !important; /* Moodle/Bootstrap primary */
+    color: #0d6efd !important;
+    background: none !important;
+}
 /*
     Speval Module Form Styling
     This CSS file makes the evaluation form look clean and modern.
