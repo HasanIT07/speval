@@ -59,9 +59,44 @@ Enter the delails below for you and your peers.
     <form method="post">
         <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>" />
 
+
         <div class="form-row">
             <label for="peerid">Self or Peer User ID:</label>
             <input type="number" name="peerid" id="peerid" required>
+        </div>
+
+        <!-- Extra dropdown for testing purposes: shows group member names -->
+        <div class="form-row">
+            <label for="testdropdown">Test Dropdown (Student Names):</label>
+            <select name="testdropdown" id="testdropdown">
+                <option value="" disabled selected>Select a student</option>
+                <?php
+                global $COURSE, $USER, $DB, $CFG;
+                require_once($CFG->dirroot . '/user/lib.php');
+                $courseid = isset($COURSE->id) ? $COURSE->id : (isset($course->id) ? $course->id : 0);
+                // Get all group IDs for this user in this course
+                $groupids = $DB->get_fieldset_select('groups', 'id', 'courseid = ?', [$courseid]);
+                $usergroupids = $DB->get_fieldset_select('groups_members', 'groupid', 'userid = ? AND groupid IN (' . implode(',', $groupids) . ')', [$USER->id]);
+                $allmemberids = [$USER->id];
+                if (!empty($usergroupids)) {
+                    list($ingroupsql, $groupparams) = $DB->get_in_or_equal($usergroupids);
+                    $allmemberids = $DB->get_fieldset_select('groups_members', 'userid', 'groupid ' . $ingroupsql, $groupparams);
+                    // Always include self
+                    if (!in_array($USER->id, $allmemberids)) {
+                        $allmemberids[] = $USER->id;
+                    }
+                }
+                $allmemberids = array_unique($allmemberids);
+                if (!empty($allmemberids)) {
+                    list($in_sql, $params) = $DB->get_in_or_equal($allmemberids);
+                    $students = $DB->get_records_select('user', 'id ' . $in_sql, $params, 'lastname,firstname', 'id,firstname,lastname');
+                    foreach ($students as $student) {
+                        $fullname = fullname($student);
+                        echo '<option value="' . $student->id . '">' . s($fullname) . '</option>';
+                    }
+                }
+                ?>
+            </select>
         </div>
 
         <p>
