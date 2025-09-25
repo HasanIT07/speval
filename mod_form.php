@@ -4,7 +4,7 @@ require_once($CFG->dirroot.'/course/moodleform_mod.php');
 
 class mod_speval_mod_form extends moodleform_mod {
     public function definition() {
-        global $USER; 
+    global $USER; 
 	global $COURSE;
 
 	$mform = $this->_form;
@@ -22,14 +22,16 @@ class mod_speval_mod_form extends moodleform_mod {
 	debugging(print_r($courseid, true), DEBUG_DEVELOPER);
 
 
-
 	// Description field
 	$this->standard_intro_elements();
 
 	// Number of criteria field.
+	//not working properly (if i select1 or 2, it still shows all 5 questions)
 	$mform->addElement('select', 'criteria_count', get_string('criteria_count', 'speval'), array(1 => '1', 2 => '2', 3 => '3', 4 => '4', 5 => '5'));
 	$mform->setDefault('criteria_count', 3);
 	$mform->setType('criteria_count', PARAM_INT);
+
+
 
 	// Intro ?
         // $mform->addElement('textarea', 'intro', get_string('intro', 'core'), 'wrap="virtual" rows="5" cols="50"');
