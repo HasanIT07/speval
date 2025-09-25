@@ -31,8 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 
     // === The fix is here: using optional_param instead of required_param for non-required fields ===
     $record = (object)[
-        'unitid'      =>$COURSE->id,
+        'unitid'      => $COURSE->id,
         'userid'      => $USER->id,
+        //need to change this to auto fill
         'peerid'      => required_param('peerid', PARAM_INT),
         'criteria1'   => optional_param('c1', 0, PARAM_INT),
         'criteria2'   => optional_param('c2', 0, PARAM_INT),
@@ -83,27 +84,63 @@ Using the assessment scales above. Fill out the Following
             <label for="c1">1.	The amount of work and effort put into the Requirements and Analysis
 Document, the Project Management Plan, and the Design Document.
 </label>
-            <input type="number" name="c1" id="c1" min="1" max="5">
+            <!-- Changed to dropdown (select) for multiple choice (1-5) -->
+            <select name="c1" id="c1" required>
+                <option value="" disabled selected>Select a rating</option>
+                <option value="1">1 - Very poor</option>
+                <option value="2">2 - Poor</option>
+                <option value="3">3 - Acceptable</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
         </div>
 
         <div class="form-row">
             <label for="c2">2.	Willingness to work as part of the group and taking responsibility in the group.</label>
-            <input type="number" name="c2" id="c2" min="1" max="5">
+            <select name="c2" id="c2" required>
+                <option value="" disabled selected>Select a rating</option>
+                <option value="1">1 - Very poor</option>
+                <option value="2">2 - Poor</option>
+                <option value="3">3 - Acceptable</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
         </div>
 
         <div class="form-row">
             <label for="c3">3.	Communication within the group and participation in group meetings.</label>
-            <input type="number" name="c3" id="c3" min="1" max="5">
+            <select name="c3" id="c3" required>
+                <option value="" disabled selected>Select a rating</option>
+                <option value="1">1 - Very poor</option>
+                <option value="2">2 - Poor</option>
+                <option value="3">3 - Acceptable</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
         </div>
 
         <div class="form-row">
             <label for="c4">4.	Contribution to the management of the project, e.g. work delivered on time.</label>
-            <input type="number" name="c4" id="c4" min="1" max="5">
+            <select name="c4" id="c4" required>
+                <option value="" disabled selected>Select a rating</option>
+                <option value="1">1 - Very poor</option>
+                <option value="2">2 - Poor</option>
+                <option value="3">3 - Acceptable</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
         </div>
 
         <div class="form-row">
             <label for="c5">5.	Problem solving and creativity on behalf of the group’s work.</label>
-            <input type="number" name="c5" id="c5" min="1" max="5">
+            <select name="c5" id="c5" required>
+                <option value="" disabled selected>Select a rating</option>
+                <option value="1">1 - Very poor</option>
+                <option value="2">2 - Poor</option>
+                <option value="3">3 - Acceptable</option>
+                <option value="4">4 - Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
         </div>
 
         <div class="form-row">

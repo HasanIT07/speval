@@ -1,3 +1,5 @@
+$string['addquestion'] = 'Add Question';
+$string['questiontext'] = 'Question Text';
 <?php
 
 /* 

@@ -48,5 +48,23 @@ This XML is responsible of installing custom tables to our databases
             <INDEX NAME="peerid" UNIQUE="false" FIELDS="peerid"/>
             </INDEXES>
         </TABLE>
+        <TABLE NAME="speval_questions" COMMENT="Stores questions added by teachers">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true"/>
+                <FIELD NAME="unitid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="The ID of the course module instance"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Teacher who added the question"/>
+                <FIELD NAME="peerid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Group or peer ID (auto-filled)"/>
+                <FIELD NAME="questiontext" TYPE="text" NOTNULL="true"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="unitid" UNIQUE="false" FIELDS="unitid"/>
+                <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+                <INDEX NAME="peerid" UNIQUE="false" FIELDS="peerid"/>
+            </INDEXES>
+        </TABLE>
     </TABLES>
 </XMLDB>
