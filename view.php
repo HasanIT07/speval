@@ -110,65 +110,60 @@ Enter the delails below for you and your peers.
             <p>
   
             </p>
-            <!-- Criteria 1: Effort and documentation -->
+            <!-- Criteria 1: Effort and documentation , note inline block ensure same line buttons-->
             <div class="form-row">
                 <label for="c1_<?php echo $student->id; ?>">1. The amount of work and effort put into the Requirements and Analysis Document, the Project Management Plan, and the Design Document.</label>
-                <select name="c1" id="c1_<?php echo $student->id; ?>" required>
-                    <option value="" disabled selected>Select rating</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+                <span id="c1_<?php echo $student->id; ?>">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <label style="margin-right:8px; display:inline-block;">
+                        <input type="radio" name="c1" value="<?php echo $i; ?>" required> <?php echo $i; ?>
+                    </label>
+                <?php endfor; ?>
+                </span>
             </div>
             <!-- Criteria 2: Teamwork -->
             <div class="form-row">
                 <label for="c2_<?php echo $student->id; ?>">2. Willingness to work as part of the group and taking responsibility in the group.</label>
-                <select name="c2" id="c2_<?php echo $student->id; ?>" required>
-                    <option value="" disabled selected>Select rating</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+                <span id="c2_<?php echo $student->id; ?>">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <label style="margin-right:8px; display:inline-block;">
+                        <input type="radio" name="c2" value="<?php echo $i; ?>" required> <?php echo $i; ?>
+                    </label>
+                <?php endfor; ?>
+                </span>
             </div>
             <!-- Criteria 3: Communication -->
             <div class="form-row">
                 <label for="c3_<?php echo $student->id; ?>">3. Communication within the group and participation in group meetings.</label>
-                <select name="c3" id="c3_<?php echo $student->id; ?>" required>
-                    <option value="" disabled selected>Select rating</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+                <span id="c3_<?php echo $student->id; ?>">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <label style="margin-right:8px; display:inline-block;">
+                        <input type="radio" name="c3" value="<?php echo $i; ?>" required> <?php echo $i; ?>
+                    </label>
+                <?php endfor; ?>
+                </span>
             </div>
             <!-- Criteria 4: Project management -->
             <div class="form-row">
                 <label for="c4_<?php echo $student->id; ?>">4. Contribution to the management of the project, e.g. work delivered on time.</label>
-                <select name="c4" id="c4_<?php echo $student->id; ?>" required>
-                    <option value="" disabled selected>Select rating</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+                <span id="c4_<?php echo $student->id; ?>">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <label style="margin-right:8px; display:inline-block;">
+                        <input type="radio" name="c4" value="<?php echo $i; ?>" required> <?php echo $i; ?>
+                    </label>
+                <?php endfor; ?>
+                </span>
             </div>
             <!-- Criteria 5: Problem solving -->
             <div class="form-row">
                 <label for="c5_<?php echo $student->id; ?>">5. Problem solving and creativity on behalf of the group’s work.</label>
-                <select name="c5" id="c5_<?php echo $student->id; ?>" required>
-                    <option value="" disabled selected>Select rating</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+                <span id="c5_<?php echo $student->id; ?>">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <label style="margin-right:8px; display:inline-block;">
+                        <input type="radio" name="c5" value="<?php echo $i; ?>" required> <?php echo $i; ?>
+                    </label>
+                <?php endfor; ?>
+                </span>
             </div>
             <!-- Free-text comment field -->
             <div class="form-row">
