@@ -2,7 +2,9 @@
 require(__DIR__.'/../../config.php');
 require_login();
 
+
 $id = required_param('id', PARAM_INT);
+$start = optional_param('start', 0, PARAM_INT); // Show form if start=1
 $cm = get_coursemodule_from_id('speval', $id, 0, false, MUST_EXIST);
 $context = context_module::instance($cm->id);
 require_capability('mod/speval:view', $context);
@@ -13,8 +15,73 @@ $url = new moodle_url('/mod/speval/view.php', ['id' => $cm->id]);
 $PAGE->set_url($url);
 $PAGE->requires->css(new moodle_url('/mod/speval/styles.css'));
 
+
 echo $OUTPUT->header();
-echo $OUTPUT->heading('Self & Peer Evaluation');
+
+global $DB, $USER, $COURSE, $CFG;
+$speval = $DB->get_record('speval', ['id' => $cm->instance]);
+$courseid = $COURSE->id;
+
+if (!$start) {
+    // Initial info/landing page before evaluation starts
+    echo $OUTPUT->heading(format_string($cm->name));
+    if (!empty($speval->intro)) {
+        echo $OUTPUT->box(format_module_intro('speval', $speval, $cm->id), 'generalbox');
+    }
+    // Show grading info if available
+    if (isset($speval->grade)) {
+        echo '<p><b>Maximum grade:</b> ' . (float)$speval->grade . '</p>';
+    }
+    // Show group members (if any)
+    $groupids = $DB->get_fieldset_select('groups', 'id', 'courseid = ?', [$courseid]);
+    $usergroupids = [];
+    if (!empty($groupids)) {
+        $usergroupids = $DB->get_fieldset_select('groups_members', 'groupid', 'userid = ? AND groupid IN (' . implode(',', $groupids) . ')', [$USER->id]);
+    }
+    $allmemberids = [$USER->id];
+    if (!empty($usergroupids)) {
+        list($ingroupsql, $groupparams) = $DB->get_in_or_equal($usergroupids);
+        $allmemberids = $DB->get_fieldset_select('groups_members', 'userid', 'groupid ' . $ingroupsql, $groupparams);
+        if (!in_array($USER->id, $allmemberids)) {
+            $allmemberids[] = $USER->id;
+        }
+    }
+    $allmemberids = array_unique($allmemberids);
+    if (!empty($allmemberids)) {
+        list($in_sql, $params) = $DB->get_in_or_equal($allmemberids);
+        $students = $DB->get_records_select('user',
+            'id ' . $in_sql,
+            $params,
+            'lastname,firstname',
+            'id,firstname,lastname,firstnamephonetic,lastnamephonetic,middlename,alternatename'
+        );
+        echo '</ul>';
+    }
+    // Instructions
+    echo '<div class="speval-container">';
+    echo '<h2>Self & Peer Evaluation</h2>';
+    echo '<b><p>Please note:</b> Everything you put into this form will be kept strictly confidential by the unit coordinator.<br>';
+    echo '<b>Contribution Ratings:</b><br>';
+    echo '- Very Poor: Very poor, or even obstructive, contribution to the project process<br>';
+    echo '- Poor: Poor contribution to the project process<br>';
+    echo '- Average: Acceptable contribution to the project process<br>';
+    echo '- Good: Good contribution to the project process<br>';
+    echo '- Excellent: Excellent contribution to the project process<br><br>';
+    echo '<b>Using the assessment scales above, fill out the following.</b>';
+    echo '</p>';
+    echo '</div>';
+
+    // Start button
+    $starturl = new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'start' => 1]);
+    echo '<form method="get" action="' . $starturl . '">';
+    echo '<input type="hidden" name="id" value="' . $cm->id . '" />';
+    echo '<input type="hidden" name="start" value="1" />';
+    echo '<button type="submit">Start Evaluation</button>';
+    echo '</form>';
+    echo $OUTPUT->footer();
+    exit;
+}
+// ...existing code...
 
 // Render a criteria row for a user (uses array field names)
 function speval_criteria_row($name, $label, $studentid) {
@@ -121,14 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 <div class="speval-container">
     <h2>Self & Peer Evaluation</h2>
     <b><p>Please note:</b> Everything you put into this form will be kept strictly confidential by the unit coordinator.<br>
-        <b>Contribution Ratings:</b><br>
-        - Very Poor: Very poor, or even obstructive, contribution to the project process<br>
-        - Poor: Poor contribution to the project process<br>
-        - Average: Acceptable contribution to the project process<br>
-        - Good: Good contribution to the project process<br>
-        - Excellent: Excellent contribution to the project process<br><br>
-        <b>Using the assessment scales above, fill out the following.</b>
-    </p>
+    <!-- add information about grading here -->
 
     <form method="post">
         <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>" />
