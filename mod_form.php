@@ -31,6 +31,9 @@ class mod_speval_mod_form extends moodleform_mod {
 	$mform->setDefault('criteria_count', 3);
 	$mform->setType('criteria_count', PARAM_INT);
 
+    // Grade field: allows teacher to set max grade for the activity
+    // $this->standard_grading_elements();
+
 
 
 	// Intro ?
