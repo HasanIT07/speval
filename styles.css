@@ -101,3 +101,21 @@ body {
     background-color: #0056b3;
     transform: translateY(-2px);
 }
+
+
+.submit-button {
+    padding: 12px 24px;
+    font-size: 1em;
+    font-weight: bold;
+    color: #fff;
+    background-color: #3772b3;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.submit-buttonhover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}

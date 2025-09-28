@@ -1,12 +1,13 @@
 <?php
-require(__DIR__.'/../../config.php');
+
+require(__DIR__.'/../../config.php'); // Make the DB object is available in the global scope
+defined('MOODLE_INTERNAL') || die();
 require_login();
 
-
-$id = required_param('id', PARAM_INT);
-$start = optional_param('start', 0, PARAM_INT); // Show form if start=1
-$cm = get_coursemodule_from_id('speval', $id, 0, false, MUST_EXIST);
-$context = context_module::instance($cm->id);
+$id = required_param('id', PARAM_INT);                                      // Get the course module id from a post or get request.
+$start = optional_param('start', 0, PARAM_INT);                             // Show form if start=1
+$cm = get_coursemodule_from_id('speval', $id, 0, false, MUST_EXIST);        // Get the current SPEVAL activity (Course Modudle)
+$context = context_module::instance($cm->id);                               // Get the context from the course module
 require_capability('mod/speval:view', $context);
 
 $PAGE->set_cm($cm);
@@ -15,12 +16,15 @@ $url = new moodle_url('/mod/speval/view.php', ['id' => $cm->id]);
 $PAGE->set_url($url);
 $PAGE->requires->css(new moodle_url('/mod/speval/styles.css'));
 
+$renderer = $PAGE->get_renderer('mod_speval');                              // Get he renderer class from speval\classes\ouput\renderer.php
 
 echo $OUTPUT->header();
 
 global $DB, $USER, $COURSE, $CFG;
 $speval = $DB->get_record('speval', ['id' => $cm->instance]);
 $courseid = $COURSE->id;
+
+
 
 if (!$start) {
     // Initial info/landing page before evaluation starts
@@ -57,70 +61,14 @@ if (!$start) {
         );
         echo '</ul>';
     }
-    // Instructions
-    echo '<div class="speval-container">';
-    echo '<h2>Self & Peer Evaluation</h2>';
-    echo '<b><p>Please note:</b> Everything you put into this form will be kept strictly confidential by the unit coordinator.<br>';
-    echo '<b>Contribution Ratings:</b><br>';
-    echo '- Very Poor: Very poor, or even obstructive, contribution to the project process<br>';
-    echo '- Poor: Poor contribution to the project process<br>';
-    echo '- Average: Acceptable contribution to the project process<br>';
-    echo '- Good: Good contribution to the project process<br>';
-    echo '- Excellent: Excellent contribution to the project process<br><br>';
-    echo '<b>Using the assessment scales above, fill out the following.</b>';
-    echo '</p>';
-    echo '</div>';
-
-    // Start button
-    $starturl = new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'start' => 1]);
-    echo '<form method="get" action="' . $starturl . '">';
-    echo '<input type="hidden" name="id" value="' . $cm->id . '" />';
-    echo '<input type="hidden" name="start" value="1" />';
-    echo '<button type="submit">Start Evaluation</button>';
-    echo '</form>';
+    // Start page
+    // Initial instructions
+    echo $renderer->speval_start($cm->id); // All the HTML for the start page is in the renderer class
     echo $OUTPUT->footer();
     exit;
 }
-// ...existing code...
 
-// Render a criteria row for a user (uses array field names)
-function speval_criteria_row($name, $label, $studentid) {
-    $criteria_labels = [
-        1 => 'Very Poor',
-        2 => 'Poor',
-        3 => 'Average',
-        4 => 'Good',
-        5 => 'Excellent'
-    ];
-    echo '<div class="form-row">';
-    echo "<label for=\"{$name}_{$studentid}\">{$label}</label>";
-    echo "<span id=\"{$name}_{$studentid}\">";
-    foreach ($criteria_labels as $value => $text) {
-        echo '<label style="margin-right:8px; display:inline-block;">';
-        echo "<input type=\"radio\" name=\"{$name}[{$studentid}]\" value=\"{$value}\" required> {$text}";
-        echo '</label>';
-    }
-    echo '</span>';
-    echo '</div>';
-}
 
-// Render all fields for a peer
-function speval_peer_fields($student) {
-    $studentid = $student->id;
-    $fullname  = fullname($student);
-    echo "<fieldset class=\"speval-peer\">";
-    echo "<legend><b>" . s($fullname) . "</b></legend>";
-    speval_criteria_row("c1", "1. The amount of work and effort put into the Requirements and Analysis Document, the Project Management Plan, and the Design Document.", $studentid);
-    speval_criteria_row("c2", "2. Willingness to work as part of the group and taking responsibility in the group.", $studentid);
-    speval_criteria_row("c3", "3. Communication within the group and participation in group meetings.", $studentid);
-    speval_criteria_row("c4", "4. Contribution to the management of the project, e.g. work delivered on time.", $studentid);
-    speval_criteria_row("c5", "5. Problem solving and creativity on behalf of the group’s work.", $studentid);
-    echo '<div class="form-row">';
-    echo "<label for=\"comment_{$studentid}\">Comment:</label>";
-    echo "<textarea name=\"comment[{$studentid}]\" id=\"comment_{$studentid}\" rows=\"4\" cols=\"40\"></textarea>";
-    echo "</div>";
-    echo "</fieldset><hr>";
-}
 
 // Handle form submission (all-in-one)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
@@ -220,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                 'id,firstname,lastname,firstnamephonetic,lastnamephonetic,middlename,alternatename'
             );
             foreach ($students as $student) {
-                speval_peer_fields($student);
+                echo $renderer->peer_fields($student); // Use the renderer method to output the peer fields
             }
         }
         ?>
