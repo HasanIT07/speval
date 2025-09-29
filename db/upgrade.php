@@ -4,28 +4,20 @@ defined('MOODLE_INTERNAL') || die();
 function xmldb_speval_upgrade($oldversion) {
     global $DB;
 
-    $dbman = $DB->get_manager();
+    $dbman = $DB->get_manager(); // Loads database manager.
 
-    if ($oldversion < 2025092203) {
+    if ($oldversion < 2025092900) {
+        // Define field unitid to be added to speval_eval.
+        $table = new xmldb_table('speval_eval');
+        $field = new xmldb_field('unitid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'id');
 
-        // Define table speval.
-        $table = new xmldb_table('speval');
-
-        if (!$dbman->table_exists($table)) {
-            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
-            $table->add_field('course', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
-            $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL);
-            $table->add_field('intro', XMLDB_TYPE_TEXT, null, null, null, null);
-            $table->add_field('introformat', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, 0);
-            $table->add_field('criteria_count', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, 3);
-            $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
-
-            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-
-            $dbman->create_table($table);
+        // Conditionally launch add field unitid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
         }
 
-        upgrade_mod_savepoint(true, 2025092203, 'speval');
+        // Speval savepoint reached.
+        upgrade_mod_savepoint(true, 2025092900, 'speval');
     }
 
     return true;

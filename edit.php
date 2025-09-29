@@ -1,4 +1,8 @@
 <?php
+/*
+    * TODO: Document purpose of file
+*/
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_login();
