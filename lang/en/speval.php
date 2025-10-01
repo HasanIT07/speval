@@ -13,6 +13,9 @@ $string['modulenameplural'] = 'Self and Peer Evaluations';
 $string['speval:addinstance'] = 'Add a new SPEval activity';
 $string['speval:view'] = 'View SPEval';
 $string['speval:submit'] = 'Submit SPEval';
+$string['results'] = 'Results';
+$string['gradeall'] = 'Grade All Evaluations';
+$string['speval:grade'] = 'Grade submissions in SPEVAL';
 
 // Used in mod_form.php
 $string['criteria_count'] = 'Number of evaluation criteria';

@@ -37,6 +37,7 @@ $PAGE->requires->css(new moodle_url('/mod/speval/styles.css'));
 $renderer = $PAGE->get_renderer('mod_speval');                                      // Get he renderer class from speval\classes\ouput\renderer.php
 $speval     = $DB->get_record('speval', ['id' => $cm->instance]);                   // Load the actual SPEval activity settings record from the DB
 
+
 echo $OUTPUT->header();
 
 if (!$start) {

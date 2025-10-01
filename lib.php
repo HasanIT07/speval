@@ -22,6 +22,7 @@ function speval_add_instance(stdClass $speval, mod_speval_mod_form $mform = null
 
 
 
+
 function speval_update_instance(stdClass $speval, mod_speval_mod_form $mform = null) {
     global $DB;
 
@@ -39,6 +40,25 @@ function speval_delete_instance($id) {
 
     return true;
 }
+
+
+function speval_extend_settings_navigation(settings_navigation $settings, navigation_node $spevalnode) {
+    global $PAGE;
+
+    if (!empty($spevalnode) && has_capability('mod/speval:view', $PAGE->cm->context)) {
+        $url = new moodle_url('/mod/speval/results.php', ['id' => $PAGE->cm->id]);
+        $spevalnode->add(
+            get_string('results', 'speval'), // uses lang/en/speval.php
+            $url,
+            navigation_node::TYPE_SETTING,
+            null,
+            'spevalresults'
+        );
+    }
+}
+
+
+
 
 
 

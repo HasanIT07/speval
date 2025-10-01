@@ -1,45 +1,76 @@
 <?php
-/*
-    * Grade service for the speval module.
-    * All grading related functions should be placed here.
-*/
 namespace mod_speval\local;
 
 defined('MOODLE_INTERNAL') || die();
 
-
-
 class grade_service {
-    public static function calculate_spe_grade($cm, $courseid, $studentid) {
+    public static function calculate_spe_grade($cm, $courseid) {
+    global $DB, $CFG;
 
-        // IMPORTANT:
-        // calculate_spe_grade is broken, still requires to be fixed. The function should consider grouping.
+    $speval = $DB->get_record('speval', ['id' => $cm->instance]);
+    $maxgrade = isset($speval->grade) ? $speval->grade : 5;
+
+    require_once($CFG->libdir.'/gradelib.php');
 
 
-        $peerids = array_keys($c1);                                                                 // Get all peer ids that were evaluated
-        // Get max grade from activity settings
-        $speval = $DB->get_record('speval', ['id' => $cm->instance]);                               // Get the current SPEVAL activity (Course Module)
-        $maxgrade = isset($speval->grade) ? $speval->grade : 100;                                     // Default to 100 if not set                       
+    $submissions = $DB->get_records('speval_eval', ['activityid' => $cm->instance]);
+    if (!$submissions) {
+        return; // nothing to grade
+    }
 
-        foreach ($peerids as $peerid) {
-            // Get all evaluations received by this peer
-            $evals = $DB->get_records('speval_eval', ['unitid' => $courseid, 'peerid' => $peerid]);             // Get all evaluations for this peer in this course
-            $total = 0;
-            $count = 0;
-            foreach ($evals as $eval) {
-                $sum = $eval->criteria1 + $eval->criteria2 + $eval->criteria3 + $eval->criteria4 + $eval->criteria5;
-                $total += $sum / 5.0; // average for this evaluation
+    $processed_students = [];
+
+    foreach ($submissions as $submission) {
+        $studentid = $submission->userid;
+
+        if (in_array($studentid, $processed_students)) {
+            continue; // already graded
+        }
+
+        $studentgrades = [0,0,0,0,0];
+        $count = 0;
+
+        foreach ($submissions as $s) {
+            if ($s->peerid == $studentid) {
+                $studentgrades[0] += $s->criteria1;
+                $studentgrades[1] += $s->criteria2;
+                $studentgrades[2] += $s->criteria3;
+                $studentgrades[3] += $s->criteria4;
+                $studentgrades[4] += $s->criteria5;
                 $count++;
             }
-            $avg = $count > 0 ? $total / $count : 0;
-            // Normalize to max grade (scale 1-5 to maxgrade)
-            $grade = $maxgrade * ($avg / 5.0);
+        }
 
-            // Update gradebook
-            require_once($CFG->libdir.'/gradelib.php');
-            $grades = [ $peerid => (object)['userid' => $peerid, 'rawgrade' => $grade] ];
-            grade_update('mod/speval', $courseid, 'mod', 'speval', $cm->instance, 0, $grades);
-        }     
+        $grade = 0;
+        if ($count > 0) {
+            $grade = array_sum($studentgrades) / ($count * 5);
+        }
 
-    }
+        $processed_students[] = $studentid;
+        
+
+
+                    // First, delete old grade for this student (avoid duplicates)
+            $DB->delete_records('speval_grades', [
+                'activityid' => $submission->activityid,
+                'userid' => $studentid
+            ]);
+    $DB->insert_record('speval_grades', [
+        'unitid'     => $submission->unitid,
+        'userid'     => $studentid,      // or $submission->userid depending on your logic
+        'activityid' => $submission->activityid,
+        'c1'         => $studentgrades[0],
+        'c2'         => $studentgrades[1],
+        'c3'         => $studentgrades[2],
+        'c4'         => $studentgrades[3],
+        'c5'         => $studentgrades[4],
+        'finalgrade' => $grade,
+    ]);
+
+}
+
+//need to add functionality to give 0 who did not submit peer evals
+
+
+}
 }
