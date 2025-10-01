@@ -72,5 +72,26 @@ class grade_service {
 //need to add functionality to give 0 who did not submit peer evals
 
 
+    // foreach ($students as $student) {
+    //     if (!in_array($student->id, $processed_students)) {
+    //         // Student did not receive any peer evaluations, assign grade 0
+    //         $DB->delete_records('speval_grades', [
+    //             'activityid' => $cm->instance,
+    //             'userid' => $student->id
+    //         ]);
+    //         $DB->insert_record('speval_grades', [
+    //             'unitid'     => $courseid,
+    //             'userid'     => $student->id,
+    //             'activityid' => $cm->instance,
+    //             'c1'         => 0,
+    //             'c2'         => 0,
+    //             'c3'         => 0,
+    //             'c4'         => 0,
+    //             'c5'         => 0,
+    //             'finalgrade' => 0,
+    //         ]);
+    //     }
+    // }
+
 }
 }
