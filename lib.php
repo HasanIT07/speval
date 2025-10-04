@@ -8,14 +8,38 @@ function speval_supports($feature) {
     }
 }
 
+function speval_delete_instance($id) {
+    die("SPEVAL DELETE INSTANCE CALLED with id=$id");
+    global $DB;
+
+    $DB->delete_records('speval', array('id' => $id));
+
+    // debugging("Deleting speval instance: $id", DEBUG_DEVELOPER);
+    error_log("Deleting speval instance: $id");
+
+    // $DB->delete_records('speval_eval', array('spevalid' => $id)); // You'll need to add a foreign key to the eval table for this to work.
+
+    return true;
+}
+
+
 function speval_add_instance(stdClass $speval, mod_speval_mod_form $mform = null) {
     global $DB;
 
     $speval->timemodified = time();
 
-    // Use the database to insert the new record.
-    $id = $DB->insert_record('speval', $speval);
+    if (empty($speval->linkedassign)) {
+        $speval->linkedassign = null;
+    } else{
+        $speval->grouping = null;
+    }
 
+    // if (!isset($speval->visible)) {
+    //     $speval->visible = 1;
+    // }
+    // $speval->visible = 1;
+
+    $id = $DB->insert_record('speval', $speval);
     return $id;
 }
 
@@ -28,19 +52,15 @@ function speval_update_instance(stdClass $speval, mod_speval_mod_form $mform = n
 
     $speval->timemodified = time();
     $speval->id = $speval->instance;
+    
+    if (empty($speval->linkedassign)) {
+        $speval->linkedassign = null;
+    } else{
+        $speval->grouping = null;
+    }
 
     return $DB->update_record('speval', $speval);
 }
-
-function speval_delete_instance($id) {
-    global $DB;
-
-    $DB->delete_records('speval', array('id' => $id));
-    $DB->delete_records('speval_eval', array('spevalid' => $id)); // You'll need to add a foreign key to the eval table for this to work.
-
-    return true;
-}
-
 
 function speval_extend_settings_navigation(settings_navigation $settings, navigation_node $spevalnode) {
     global $PAGE;
@@ -56,10 +76,6 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
         );
     }
 }
-
-
-
-
 
 
 

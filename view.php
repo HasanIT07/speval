@@ -41,7 +41,7 @@ $speval     = $DB->get_record('speval', ['id' => $cm->instance]);               
 echo $OUTPUT->header();
 
 if (!$start) {
-    echo $renderer->student_landing_page($cm, $speval); // All the HTML for the start page is in the renderer class
+    echo $renderer->student_landing_page($cm, $speval);                         // All the HTML for the start page is in the renderer class
     echo $OUTPUT->footer();
     exit;
 }
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {               
     // grade_service::update_grades($cm, $COURSE->id, $USER);                   // Grade calculation and update will be implemented inside this method
 }
 
-$studentsInGroup = util::get_students_in_same_groups($COURSE->id, $USER);
+$studentsInGroup = util::get_students_in_same_groups($speval->id, $USER);
 echo $renderer->evaluation_form($studentsInGroup);
 
 echo $OUTPUT->footer();
