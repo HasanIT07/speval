@@ -1,35 +1,41 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<!-- 
-This XML is responsible of installing custom tables to our databases
--->
-
-
 <XMLDB PATH="mod/speval/db" VERSION="2025100300" COMMENT="SPEval tables">
     <TABLES>
 
-
-
-	<TABLE NAME="speval" COMMENT="Stores SPEval activity instances">
+    <TABLE NAME="speval" COMMENT="Stores SPEval activity instances">
         <FIELDS>
-        	<FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true"/>
-        	<FIELD NAME="course" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true"/>
-            <FIELD NAME="linkedassignment" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="Foreign key to mdl_assign, null means standalone"/>
-        	<FIELD NAME="name" TYPE="char" LENGTH="255" SEQUENCE="false" NOTNULL="true"/>
-        	<FIELD NAME="intro" TYPE="text" SEQUENCE="false" NOTNULL="false"/>
-        	<FIELD NAME="introformat" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-        	<FIELD NAME="criteria_count" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="true" DEFAULT="3"/>
-        	<FIELD NAME="timemodified" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true"/>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
+            <FIELD NAME="course" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Foreign key to mdl_course"/>
+            <FIELD NAME="name" TYPE="char" LENGTH="255" SEQUENCE="false" NOTNULL="true" COMMENT="Activity name"/>
+            <FIELD NAME="intro" TYPE="text" SEQUENCE="false" NOTNULL="false" COMMENT="Activity description / instructions"/>
+            <FIELD NAME="introformat" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="true" DEFAULT="1" COMMENT="Format of intro text (HTML=1, PLAIN=0)"/>
+            <FIELD NAME="linkedassign" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Foreign key to mdl_assign, null means standalone"/>
+            <FIELD NAME="grouping" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Used when linkedassign is null"/>
+            <FIELD NAME="timeopen" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Timestamp when activity opens for students"/>
+            <FIELD NAME="timeclose" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Timestamp when activity closes for students"/>
+            <FIELD NAME="overduehandling" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="prevent" COMMENT="Late submission handling: prevent/allow/marklate"/>
+            <FIELD NAME="timemodified" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Last modification timestamp"/>
         </FIELDS>
-    	    <KEYS>
- 	       	<KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        	<KEY NAME="course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
-            <KEY NAME="linkedassignment_fk" TYPE="foreign" FIELDS="linkedassignment" REFTABLE="assign" REFFIELDS="id"/>
-   	    </KEYS>
-	</TABLE>
+        <KEYS>
+            <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            <KEY NAME="course_fk" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
+            <KEY NAME="linkedassign_fk" TYPE="foreign" FIELDS="linkedassign" REFTABLE="assign" REFFIELDS="id"/>
+        </KEYS>
+    </TABLE>
 
-
-
+    <TABLE NAME="speval_criteria" COMMENT="Criteria questions for an SPEval activity">
+        <FIELDS>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
+            <FIELD NAME="spevalid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Foreign key to speval"/>
+            <FIELD NAME="sortorder" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="true" COMMENT="Display order of criteria"/>
+            <FIELD NAME="questiontext" TYPE="text" SEQUENCE="false" NOTNULL="true" COMMENT="Text of the criterion / question"/>
+        </FIELDS>
+        <KEYS>
+            <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            <KEY NAME="spevalid_fk" TYPE="foreign" FIELDS="spevalid" REFTABLE="speval" REFFIELDS="id"/>
+        </KEYS>
+    </TABLE>
 
     <TABLE NAME="speval_eval" COMMENT="Stores peer evaluations">
         <FIELDS>
@@ -48,32 +54,64 @@ This XML is responsible of installing custom tables to our databases
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            <KEY NAME='activityid_fk' TYPE='foreign' FIELDS='activityid' REFTABLE='speval' REFFIELDS='id'/>
+            <KEY NAME='userid_fk' TYPE='foreign' FIELDS='userid' REFTABLE='user' REFFIELDS='id'/>
+            <KEY NAME='peerid_fk' TYPE='foreign' FIELDS='peerid' REFTABLE='user' REFFIELDS='id'/>
         </KEYS>
         <INDEXES>
             <INDEX NAME="id" UNIQUE="true" FIELDS="id"/>
+            <INDEX NAME="activityid" UNIQUE="false" FIELDS="activityid"/>
+            <INDEX NAME="user_peer_activity_unique" UNIQUE="true" FIELDS="userid, peerid, activityid"/>
         </INDEXES>
     </TABLE>
-
-
 
     <TABLE NAME="speval_grades" COMMENT="Stores calculated grades for peer evaluations">
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
             <FIELD NAME="userid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
             <FIELD NAME="activityid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="c1" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="c2" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="c3" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="c4" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="c5" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="finalgrade" TYPE="number" SEQUENCE="false" NOTNULL="true" DEFAULT="0.00"/>
+            <FIELD NAME="criteria1" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria2" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria3" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria4" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria5" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="finalgrade" TYPE="DECIMAL(10,2)" SEQUENCE="false" NOTNULL="true" DEFAULT="0.00"/>
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            <KEY NAME='activityid_fk' TYPE='foreign' FIELDS='activityid' REFTABLE='speval' REFFIELDS='id'/>
         </KEYS>
+        <INDEXES>
+            <INDEX NAME="userid_activityid" UNIQUE="true" FIELDS="userid, activityid"/>
+            <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+        </INDEXES>
     </TABLE>
 
 
+    <TABLE NAME="speval_flag" COMMENT="Stores flags for peer teams (misbehaviour/comment discrepancy/mark discrepancy/etc)">
+        <FIELDS>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
+            <FIELD NAME="activityid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="SPEval activity instance"/>
+            <FIELD NAME="groupingid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Optional grouping ID, if applicable"/>
+            <FIELD NAME="teamid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Group/team evaluated"/>
+            <FIELD NAME="misbehaviourflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if potential misbehaviour is found, 0 otherwise"/>
+            <FIELD NAME="markdiscrepancyflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if mark discrepancy is found, 0 otherwise"/>                        
+            <FIELD NAME="commentdiscrepancyflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if comment discrepancy is found, 0 otherwise"/>                        
+            <FIELD NAME="notes" TYPE="text" SEQUENCE="false" NOTNULL="false" COMMENT="Optional details, e.g., AI comment or explanation"/>
+            <FIELD NAME="timecreated" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Timestamp when flag was created"/>
+        </FIELDS>
+        <KEYS>
+            <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            <KEY NAME="activityid_fk" TYPE="foreign" FIELDS="activityid" REFTABLE="speval" REFFIELDS="id"/>
+            <KEY NAME="teamid_fk" TYPE="foreign" FIELDS="teamid" REFTABLE="groups" REFFIELDS="id"/>
+            <KEY NAME="groupingid_fk" TYPE="foreign" FIELDS="groupingid" REFTABLE="groupings" REFFIELDS="id"/>
+        </KEYS>
+        <INDEXES>
+            <INDEX NAME="activity_team_unique" UNIQUE="true" FIELDS="activityid, teamid"/>
+            <INDEX NAME="activityid" UNIQUE="false" FIELDS="activityid"/>
+            <INDEX NAME="teamid" UNIQUE="false" FIELDS="teamid"/>
+        </INDEXES>
+    </TABLE>
 
     </TABLES>
 </XMLDB>
