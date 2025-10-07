@@ -65,82 +65,13 @@ class mod_speval_mod_form extends moodleform_mod {
 
 	// Set defaults if editing existing instance.
 	if (!empty($this->current)) {
-
-		public function definition() {
-			global $USER; 
-			global $COURSE;
-			global $DB;
-
-			$mform = $this->_form;
-			$mform->setDefault('visible', 1);
-			// -------------------------------------------------------------------------------
-			// General
-			$mform->addElement('header', 'general', 'General');
-			$mform->addElement('text', 'name', get_string('spename', 'mod_speval'));
-			$mform->setType('name', PARAM_TEXT);
-			$mform->addRule('name', null, 'required', null, 'client');
-			// Description field
-			$this->standard_intro_elements();
-
-			// -------------------------------------------------------------------------------
-			// Linking
-			$mform->addElement('header', 'linking', 'Activity Linking');
-			$linkoptions = [
-				0 => get_string('standalone', 'mod_speval'),
-				1 => get_string('linktoassignment', 'mod_speval')
-			];
-			$mform->addElement('select', 'linkoption', get_string('linkoption', 'mod_speval'), $linkoptions);
-			$mform->setType('linkoption', PARAM_INT);
-			$assignments = $DB->get_records('assign', ['course' => $COURSE->id]);
-			$assignmentoptions = [0 => "select assignment"];
-			foreach ($assignments as $assign) {
-				$assignmentoptions[$assign->id] = format_string($assign->name);
-			}
-			$mform->addElement('select', 'linkedassign', get_string('linkedassign', 'mod_speval'), $assignmentoptions);
-			$mform->setType('linkedassign', PARAM_INT);
-			$mform->hideIf('linkedassign', 'linkoption', 'eq', 0);
-			$groupings = groups_get_all_groupings($COURSE->id);
-			$groupingoptions = [1 => "select grouping"];
-			foreach($groupings as $grouping){
-				$groupingoptions[$grouping->id] = format_string($grouping->name);
-			}
-			$mform->addElement('select', 'grouping', 'Linked Grouping', $groupingoptions);
-			$mform->setType('grouping', PARAM_INT);
-			$mform->hideIf('grouping', 'linkoption', 'neq', 0);
-			if (!empty($this->current)) {
-				if (!empty($this->current->linkedassign)) {
-					$mform->setDefault('linkoption', 1);
-					$mform->setDefault('linkedassign', $this->current->linkedassign);
-				} else {
-					$mform->setDefault('linkoption', 0);
-					$mform->setDefault('linkedassign', 0);
-				}
-			}
-
-			// -------------------------------------------------------------------------------
-			// Timing
-			$mform->addElement('header', 'timing', 'Timing');
-			$mform->addElement('date_time_selector', 'timeopen', get_string('timeopen', 'mod_speval'), ['optional' => true]);
-			$mform->setType('timeopen', PARAM_INT);
-			$mform->addElement('date_time_selector', 'timeclose', get_string('timeclose', 'mod_speval'), ['optional' => true]);
-			$mform->setType('timeclose', PARAM_INT);
-			$overdueoptions = [
-				'prevent' => get_string('overdue_prevent', 'mod_speval'),
-				'allow' => get_string('overdue_allow', 'mod_speval'),
-				'marklate' => get_string('overdue_marklate', 'mod_speval')
-			];
-			$mform->addElement('select', 'overduehandling', get_string('overduehandling', 'mod_speval'), $overdueoptions);
-			$mform->setType('overduehandling', PARAM_ALPHANUMEXT);
-			if (!empty($this->current)) {
-				$mform->setDefault('timeopen', $this->current->timeopen ?? 0);
-				$mform->setDefault('timeclose', $this->current->timeclose ?? 0);
-				$mform->setDefault('overduehandling', $this->current->overduehandling ?? 'prevent');
-			}
-
-			// --------------------------------------------------------------------------------
-			// Standard elements, common to all modules.
-			$this->standard_coursemodule_elements();
-
-			// Action buttons (Save/Cancel).
-			$this->add_action_buttons();
+		if (!empty($this->current->linkedassign)) {
+			$mform->setDefault('linkoption', 1);
+			$mform->setDefault('linkedassign', $this->current->linkedassign);
+		} else {
+			$mform->setDefault('linkoption', 0);
+			$mform->setDefault('linkedassign', 0);
 		}
+	}
+}
+}

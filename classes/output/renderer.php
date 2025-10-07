@@ -79,23 +79,56 @@ class renderer extends plugin_renderer_base {
             'value' => sesskey()
         ]);
 
+
         foreach ($studentsInGroup as $student) {
-            $html .= $this->peer_fields($speval, $student);
+            $is_self = ($student->id == $GLOBALS['USER']->id);
+            $html .= $this->peer_fields($speval, $student, $is_self);
         }
 
+        // Simple 1-minute countdown above the submit button
         $html .= html_writer::div(
-            html_writer::tag('button', 'Submit All Evaluations', ['type' => 'submit']),
+            html_writer::tag('div',
+                '<span id="speval-timer-msg" style="color:#b00; font-weight:bold;">Please spend at least 1 minute on your evaluation before submitting. <span id="speval-timer">60</span> seconds left.</span>',
+                ['style' => 'margin-bottom:8px;']
+            ) .
+            html_writer::tag('button', 'Submit All Evaluations', [
+                'type' => 'submit',
+                'id' => 'speval-submit-btn',
+                'disabled' => 'disabled',
+                'style' => 'opacity:0.5;'
+            ]),
             'form-actions'
         );
 
         $html .= html_writer::end_tag('form');
         $html .= html_writer::end_div();
 
+        // Simple JS timer (no localStorage)
+        $html .= "<script>
+        (function() {
+            var btn = document.getElementById('speval-submit-btn');
+            var timerSpan = document.getElementById('speval-timer');
+            var msg = document.getElementById('speval-timer-msg');
+            var seconds = 60;
+            var interval = setInterval(function() {
+                seconds--;
+                timerSpan.textContent = seconds;
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    btn.disabled = false;
+                    btn.style.opacity = 1;
+                    msg.textContent = '';
+                }
+            }, 1000);
+        })();
+        </script>";
+
         return $html;
     }
 
 
-    public function peer_fields($speval, $student) {
+    // $is_self: true for self-evaluation, false for peer
+    public function peer_fields($speval, $student, $is_self = false) {
         /* 
         * Render the criteria question for students view
         * Requires $this->criteria_row(...)
@@ -104,20 +137,16 @@ class renderer extends plugin_renderer_base {
 
         $studentid = $student->id;
         $fullname  = fullname($student);
-
         $criteria_data = util::get_criteria_data($speval);
-        
         $html = html_writer::empty_tag('hr');
-        
         $html .= html_writer::start_tag('fieldset', ['class' => 'speval-peer']);
-        $html .= html_writer::tag('legend', s(fullname($student)), ['class' => 'peer-name']);
-
-        // for each criteria question related to this $speval instance: add its text and radio options to the form
-        for ($i=1; $i<=$criteria_data->length; $i++){
+        $html .= html_writer::tag('legend', $is_self ? 'Self Evaluation' : s(fullname($student)), ['class' => 'peer-name']);
+        // Render more questions for self, fewer for peer
+        $num_questions = $is_self ? $criteria_data->length : min($criteria_data->length, 3);
+        for ($i=1; $i<=$num_questions; $i++){
             $criteriatext = $criteria_data->{"criteria$i"};
             $html .= $this->criteria_row("criteria$i", $criteriatext, $studentid);
         }
-
         // Comment field
         $html .= html_writer::start_div('form-row');
         $html .= html_writer::label('Comment:', "comment_{$studentid}");
@@ -128,9 +157,13 @@ class renderer extends plugin_renderer_base {
             'cols' => 160
         ]);
         $html .= html_writer::end_div();
-
+        // Optionally: add a hidden field for column2 (for extra data)
+        $html .= html_writer::empty_tag('input', [
+            'type' => 'hidden',
+            'name' => "column2[{$studentid}]",
+            'value' => '' // Fill with JS or backend as needed
+        ]);
         $html .= html_writer::end_tag('fieldset');
-
         return $html;
     }   
 
@@ -149,7 +182,7 @@ class renderer extends plugin_renderer_base {
         ];
         $html = html_writer::start_div('form-row');
         $html .= html_writer::label($criteriaText, "{$name}_{$studentid}", ["class" => "criteria-text"]);
-
+        $html .= '<br>';
         $html .= html_writer::start_tag('span', ['id' => "{$name}_{$studentid}"]);
         foreach ($criteria_labels as $value => $text) {
             $input = html_writer::empty_tag('input', [
