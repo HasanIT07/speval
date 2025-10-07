@@ -23,7 +23,7 @@ require_login();
 use mod_speval\local\util;
 use mod_speval\local\form_handler;
 
-$id         = required_param('id', PARAM_INT);                                      // Get the course module id from a post or get request.
+$id         = required_param('id', PARAM_INT);                                      // Get the mdl_course_module id
 $start      = optional_param('start', 0, PARAM_INT);                                // Show form if start=1
 $cm         = get_coursemodule_from_id('speval', $id, 0, false, MUST_EXIST);        // Load the course module (activity instance wrapper) by id
 $context    = context_module::instance($cm->id);                                    // Get the context from the course module
@@ -32,7 +32,7 @@ require_capability('mod/speval:view', $context);
 $PAGE->set_cm($cm);
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/mod/speval/view.php', ['id' => $cm->id]));
-$PAGE->requires->css(new moodle_url('/mod/speval/styles.css'));
+$PAGE->requires->css(new moodle_url('/mod/speval/styles.css', ['v' => time()]));
 
 $renderer = $PAGE->get_renderer('mod_speval');                                      // Get he renderer class from speval\classes\ouput\renderer.php
 $speval     = $DB->get_record('speval', ['id' => $cm->instance]);                   // Load the actual SPEval activity settings record from the DB
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {               
 }
 
 $studentsInGroup = util::get_students_in_same_groups($speval->id, $USER);
-echo $renderer->evaluation_form($studentsInGroup);
+echo $renderer->evaluation_form($speval, $studentsInGroup);
 
 echo $OUTPUT->footer();
 ?>

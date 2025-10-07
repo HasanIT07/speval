@@ -8,20 +8,6 @@ function speval_supports($feature) {
     }
 }
 
-function speval_delete_instance($id) {
-    die("SPEVAL DELETE INSTANCE CALLED with id=$id");
-    global $DB;
-
-    $DB->delete_records('speval', array('id' => $id));
-
-    // debugging("Deleting speval instance: $id", DEBUG_DEVELOPER);
-    error_log("Deleting speval instance: $id");
-
-    // $DB->delete_records('speval_eval', array('spevalid' => $id)); // You'll need to add a foreign key to the eval table for this to work.
-
-    return true;
-}
-
 
 function speval_add_instance(stdClass $speval, mod_speval_mod_form $mform = null) {
     global $DB;
@@ -34,17 +20,22 @@ function speval_add_instance(stdClass $speval, mod_speval_mod_form $mform = null
         $speval->grouping = null;
     }
 
-    // if (!isset($speval->visible)) {
-    //     $speval->visible = 1;
-    // }
-    // $speval->visible = 1;
-
     $id = $DB->insert_record('speval', $speval);
     return $id;
 }
 
 
+function speval_delete_instance($id) {
+    die("SPEVAL DELETE INSTANCE CALLED with id=$id");
+    global $DB;
 
+    $DB->delete_records('speval', ['id' => $id]);
+    $DB->delete_records('speval_eval', ['activityid' => $id]);
+    $DB->delete_records('speval_grades', ['activityid' => $id]);
+    $DB->delete_records('speval_flag', ['activityid' => $id]);
+
+    return true;
+}
 
 
 function speval_update_instance(stdClass $speval, mod_speval_mod_form $mform = null) {
@@ -62,21 +53,34 @@ function speval_update_instance(stdClass $speval, mod_speval_mod_form $mform = n
     return $DB->update_record('speval', $speval);
 }
 
+
 function speval_extend_settings_navigation(settings_navigation $settings, navigation_node $spevalnode) {
     global $PAGE;
 
-    if (!empty($spevalnode) && has_capability('mod/speval:view', $PAGE->cm->context)) {
-        $url = new moodle_url('/mod/speval/results.php', ['id' => $PAGE->cm->id]);
+    // Add a 'Results' tab to the activity navigation if the user has view capability
+    if (!empty($spevalnode) && has_capability('mod/speval:view', $PAGE->cm->context)) {                     // Ensure the activity node is present.
+        $url = new moodle_url('/mod/speval/results.php', ['id' => $PAGE->cm->id]);                          // Create the URL to the results page.
+        $spevalnode->add(                                                                                   // Add the 'Results' tab to the activity navigation.
+            get_string('results', 'speval'),                                                                // uses lang/en/speval.php                                         
+            $url,                                                                                           // Link to the results page
+            navigation_node::TYPE_SETTING,                                                                   
+            null,                                                                                       
+            'spevalresults'                                                                                 // Unique key for this node
+        );
+    }
+
+    // Add a 'Criteria' tab visible to teachers/managers.
+    if (has_capability('mod/speval:addinstance', context_course::instance($PAGE->course->id))) {
+        $url = new moodle_url('/mod/speval/criteria.php', ['id' => $PAGE->cm->id]);
         $spevalnode->add(
-            get_string('results', 'speval'), // uses lang/en/speval.php
+            get_string('criteria', 'mod_speval'),
             $url,
             navigation_node::TYPE_SETTING,
             null,
-            'spevalresults'
+            'spevalcriteria'
         );
     }
+
 }
-
-
 
 ?>

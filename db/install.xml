@@ -75,7 +75,7 @@
             <FIELD NAME="criteria3" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
             <FIELD NAME="criteria4" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
             <FIELD NAME="criteria5" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="finalgrade" TYPE="DECIMAL(10,2)" SEQUENCE="false" NOTNULL="true" DEFAULT="0.00"/>
+            <FIELD NAME="finalgrade" TYPE="number" LENGTH="10" DECIMALS="2" SEQUENCE="false" NOTNULL="true" DEFAULT="0.00"/>
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -88,12 +88,12 @@
     </TABLE>
 
 
-    <TABLE NAME="speval_flag" COMMENT="Stores flags for peer teams (misbehaviour/comment discrepancy/mark discrepancy/etc)">
+    <TABLE NAME="speval_flag" COMMENT="Stores flags for groups (misbehaviour/comment discrepancy/mark discrepancy/etc)">
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
             <FIELD NAME="activityid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="SPEval activity instance"/>
             <FIELD NAME="groupingid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Optional grouping ID, if applicable"/>
-            <FIELD NAME="teamid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Group/team evaluated"/>
+            <FIELD NAME="groupid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Group/group evaluated"/>
             <FIELD NAME="misbehaviourflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if potential misbehaviour is found, 0 otherwise"/>
             <FIELD NAME="markdiscrepancyflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if mark discrepancy is found, 0 otherwise"/>                        
             <FIELD NAME="commentdiscrepancyflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if comment discrepancy is found, 0 otherwise"/>                        
@@ -103,13 +103,13 @@
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             <KEY NAME="activityid_fk" TYPE="foreign" FIELDS="activityid" REFTABLE="speval" REFFIELDS="id"/>
-            <KEY NAME="teamid_fk" TYPE="foreign" FIELDS="teamid" REFTABLE="groups" REFFIELDS="id"/>
+            <KEY NAME="groupid_fk" TYPE="foreign" FIELDS="groupid" REFTABLE="groups" REFFIELDS="id"/>
             <KEY NAME="groupingid_fk" TYPE="foreign" FIELDS="groupingid" REFTABLE="groupings" REFFIELDS="id"/>
         </KEYS>
         <INDEXES>
-            <INDEX NAME="activity_team_unique" UNIQUE="true" FIELDS="activityid, teamid"/>
+            <INDEX NAME="activity_group_unique" UNIQUE="true" FIELDS="activityid, groupid"/>
             <INDEX NAME="activityid" UNIQUE="false" FIELDS="activityid"/>
-            <INDEX NAME="teamid" UNIQUE="false" FIELDS="teamid"/>
+            <INDEX NAME="groupid" UNIQUE="false" FIELDS="groupid"/>
         </INDEXES>
     </TABLE>
 

@@ -22,11 +22,11 @@ class form_handler {
         global $DB, $CFG;
 
         // Safely get arrays, if not present, initialize as empty array
-        $c1 = optional_param_array('c1', [], PARAM_INT);
-        $c2 = optional_param_array('c2', [], PARAM_INT);
-        $c3 = optional_param_array('c3', [], PARAM_INT);
-        $c4 = optional_param_array('c4', [], PARAM_INT);
-        $c5 = optional_param_array('c5', [], PARAM_INT);
+        $c1 = optional_param_array('criteria1', [], PARAM_INT);
+        $c2 = optional_param_array('criteria2', [], PARAM_INT);
+        $c3 = optional_param_array('criteria3', [], PARAM_INT);
+        $c4 = optional_param_array('criteria4', [], PARAM_INT);
+        $c5 = optional_param_array('criteria5', [], PARAM_INT);
         $comments = optional_param_array('comment', [], PARAM_RAW);
 
         // Only process if at least criteria 1 was submitted.

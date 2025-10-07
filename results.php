@@ -2,23 +2,22 @@
 require_once(__DIR__ . '/../../config.php');
 require_login();
 
-$id = required_param('id', PARAM_INT); // Course module ID.
+$id = required_param('id', PARAM_INT);                                                  // Get the mdl_course_module id
+list($course, $cm) = get_course_and_cm_from_cmid($id, 'speval');                        // Get the course and cm info from the id
+$speval = $DB->get_record('speval', ['id' => $cm->instance], '*', MUST_EXIST);          // Get the speval instance record from the DB
 
-// Always fetch cm, course, and module instance in one go.
-list($course, $cm) = get_course_and_cm_from_cmid($id, 'speval');
-$moduleinstance = $DB->get_record('speval', ['id' => $cm->instance], '*', MUST_EXIST);
-
-$context = context_module::instance($cm->id);
-require_capability('mod/speval:view', $context);
+$context = context_module::instance($cm->id);                                           // Get the context from the course module
+require_capability('mod/speval:view', $context);                                        // Ensure the user has permission to view this activity
 
 // Correct PAGE setup
-$PAGE->set_url(new moodle_url('/mod/speval/results.php', ['id' => $cm->id]));
+$PAGE->set_url(new moodle_url('/mod/speval/results.php', ['id' => $cm->id]));           // Set the URL for this page
 $PAGE->set_cm($cm, $course);
 $PAGE->set_context($context);
 $PAGE->set_title(get_string('results', 'speval'));
 $PAGE->set_heading($course->fullname);
 
 // Output starts
+$PAGE->activityheader->disable();
 echo $OUTPUT->header();
 
 echo $OUTPUT->heading(get_string('results', 'speval'));
