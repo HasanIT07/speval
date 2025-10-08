@@ -81,6 +81,19 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
         );
     }
 
+
+        // Add a new 'Progress' tab visible to teachers/managers.
+    if (has_capability('mod/speval:addinstance', context_course::instance($PAGE->course->id))) {
+        $url = new moodle_url('/mod/speval/progress.php', ['id' => $PAGE->cm->id]);
+        $spevalnode->add(
+            get_string('progress', 'mod_speval'),
+            $url,
+            navigation_node::TYPE_SETTING,
+            null,
+            'spevalprogress'
+        );
+    }
+
 }
 
 ?>

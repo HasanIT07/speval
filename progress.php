@@ -1,0 +1,88 @@
+<?php
+require_once('../../config.php');
+require_login();
+
+global $DB, $OUTPUT, $PAGE;
+
+$id = required_param('id', PARAM_INT); // course module id
+$cm = get_coursemodule_from_id('speval', $id, 0, false, MUST_EXIST);
+$context = context_module::instance($cm->id);
+$courseid = $cm->course;
+
+// Set Moodle page properties
+$PAGE->set_url('/mod/speval/progress.php', ['id' => $id]);
+$PAGE->set_context($context);
+$PAGE->set_cm($cm);
+
+// Only teachers for now
+require_capability('mod/speval:addinstance', $context);
+
+echo $OUTPUT->header();
+echo $OUTPUT->heading('Progress of Submission');
+
+// Fetch the activity to get its grouping
+$activity = $DB->get_record('speval', ['id' => $cm->instance], '*', MUST_EXIST);
+$groupingid = $activity->grouping;
+
+// Fetch groups linked to this activity (grouping)
+if ($groupingid) {
+    $groups = groups_get_all_groups($courseid, 0, $groupingid);
+} else {
+    $groups = groups_get_all_groups($courseid);
+}
+
+if (!$groups) {
+    echo $OUTPUT->notification('No groups found for this activity.');
+    echo $OUTPUT->footer();
+    exit;
+}
+
+// Loop through each group
+foreach ($groups as $group) {
+    $students = groups_get_members($group->id, 'u.id, u.firstname, u.lastname');
+
+    if (!$students) {
+        continue;
+    }
+
+    $total = count($students);
+    $submitted = 0;
+    $status_list = [];
+
+    foreach ($students as $student) {
+        // Check if the student has any submissions for this activity
+        $submissions = $DB->get_records('speval_eval', [
+            'activityid' => $cm->instance,
+            'userid' => $student->id
+        ]);
+
+        if ($submissions) {
+            $submitted++;
+            $status_list[] = $student->firstname . ' ' . $student->lastname . ' - <span style="color:green;">Submitted</span>';
+        } else {
+            $status_list[] = $student->firstname . ' ' . $student->lastname . ' - <span style="color:red;">Not Submitted</span>';
+        }
+    }
+
+    $percent = round(($submitted / $total) * 100);
+
+    // Group name
+    echo html_writer::tag('h3', $group->name);
+
+    // Progress bar
+    echo html_writer::start_div('', ['class' => 'progress', 'style' => 'height: 25px; margin-bottom:10px;']);
+    echo html_writer::tag('div', $percent . '%', [
+        'class' => 'progress-bar',
+        'role' => 'progressbar',
+        'style' => 'width:' . $percent . '%;',
+        'aria-valuenow' => $percent,
+        'aria-valuemin' => 0,
+        'aria-valuemax' => 100
+    ]);
+    echo html_writer::end_div();
+
+    // List students and their submission status
+    echo html_writer::alist($status_list);
+}
+
+echo $OUTPUT->footer();
