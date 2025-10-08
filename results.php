@@ -54,15 +54,23 @@ echo $OUTPUT->single_button(
 $grades = $DB->get_records('speval_grades', ['activityid' => $cm->instance]);
 $user = $DB->get_records('user');
 if ($grades) {
-    $table = new html_table();
-    $table->head = ['Name', 'Final Grade'];
+$table = new html_table();
+$table->head = ['Name', 'Final Grade', 'Actions'];
 
-    foreach ($grades as $g) {
+foreach ($grades as $g) {
+    $name = $user[$g->userid]->firstname . ' ' . $user[$g->userid]->lastname;
 
-		$name = $user[$g->userid]->firstname . ' ' . $user[$g->userid]->lastname;
-        $table->data[] = [$name,  $g->finalgrade];
-    }
-    echo html_writer::table($table);
+    // Create edit link/button for each student
+    $editurl = new moodle_url('/mod/speval/edit_grade.php', [
+        'id' => $cm->id,
+        'gradeid' => $g->id
+    ]);
+    $editbutton = html_writer::link($editurl, get_string('edit'), ['class' => 'btn btn-secondary']);
+
+    $table->data[] = [$name, $g->finalgrade, $editbutton];
+}
+
+echo html_writer::table($table);
 } else {
 	echo $OUTPUT->notification(get_string('nogrades', 'mod_speval'), 'notifyproblem');
 }
