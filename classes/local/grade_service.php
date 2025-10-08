@@ -5,93 +5,104 @@ defined('MOODLE_INTERNAL') || die();
 
 class grade_service {
     public static function calculate_spe_grade($cm, $courseid) {
-    global $DB, $CFG;
+    global $DB;
 
-    $speval = $DB->get_record('speval', ['id' => $cm->instance]);
-    $maxgrade = isset($speval->grade) ? $speval->grade : 5;
-
-    require_once($CFG->libdir.'/gradelib.php');
-
-
+    // 1. Get all submissions for this activity
     $submissions = $DB->get_records('speval_eval', ['activityid' => $cm->instance]);
+
     if (!$submissions) {
-        return; // nothing to grade
+        debugging('No submissions found for activityid '.$cm->instance, DEBUG_DEVELOPER);
+        return;
     }
 
     $processed_students = [];
 
-    foreach ($submissions as $submission) {
-        $studentid = $submission->userid;
+    // 2. Aggregate grades per student (peerid)
+    foreach ($submissions as $s) {
+        $studentid = $s->peerid;
 
-        if (in_array($studentid, $processed_students)) {
-            continue; // already graded
+        // Skip if already processed
+        if (isset($processed_students[$studentid])) {
+            continue;
         }
 
-        $studentgrades = [0,0,0,0,0];
-        $count = 0;
+        // Initialize totals
+        $totals = [0,0,0,0,0];
+        $counts = [0,0,0,0,0];
 
-        foreach ($submissions as $s) {
-            if ($s->peerid == $studentid) {
-                $studentgrades[0] += $s->criteria1;
-                $studentgrades[1] += $s->criteria2;
-                $studentgrades[2] += $s->criteria3;
-                $studentgrades[3] += $s->criteria4;
-                $studentgrades[4] += $s->criteria5;
-                $count++;
+        // Loop again to collect all peer evaluations for this student
+        foreach ($submissions as $sub) {
+            if ($sub->peerid == $studentid) {
+                // Criteria 1-5
+                for ($i=1; $i<=5; $i++) {
+                    $field = "criteria$i";
+                    if ($sub->$field !== null) {
+                        $totals[$i-1] += $sub->$field;
+                        $counts[$i-1]++;
+                    }
+                }
             }
         }
 
-        $grade = 0;
-        if ($count > 0) {
-            $grade = array_sum($studentgrades) / ($count * 5);
+        // Compute average per criteria (skip nulls)
+        $avg = [];
+        $sum_total = 0;
+        $sum_count = 0;
+        for ($i=0; $i<5; $i++) {
+            $avg[$i] = $counts[$i] > 0 ? $totals[$i]/$counts[$i] : 0;
+            $sum_total += $totals[$i];
+            $sum_count += $counts[$i];
         }
 
-        $processed_students[] = $studentid;
-        
+        $finalgrade = $sum_count > 0 ? $sum_total / $sum_count : 0;
 
+        // 3. Insert/update grade
+        $DB->delete_records('speval_grades', [
+            'activityid' => $cm->instance,
+            'userid' => $studentid
+        ]);
 
-                    // First, delete old grade for this student (avoid duplicates)
+        $DB->insert_record('speval_grades', [
+            'userid'     => $studentid,
+            'activityid' => $cm->instance,
+            'criteria1'  => $avg[0],
+            'criteria2'  => $avg[1],
+            'criteria3'  => $avg[2],
+            'criteria4'  => $avg[3],
+            'criteria5'  => $avg[4],
+            'finalgrade' => $finalgrade
+        ]);
+
+        $processed_students[$studentid] = true;
+    }
+
+    // 4. Assign 0 to students who did not receive any peer evaluations
+    $enrolled_students = $DB->get_records_sql("
+        SELECT u.id
+        FROM {user} u
+        JOIN {user_enrolments} ue ON ue.userid = u.id
+        JOIN {enrol} e ON e.id = ue.enrolid
+        WHERE e.courseid = :courseid
+    ", ['courseid' => $courseid]);
+
+    foreach ($enrolled_students as $student) {
+        if (!isset($processed_students[$student->id])) {
             $DB->delete_records('speval_grades', [
-                'activityid' => $submission->activityid,
-                'userid' => $studentid
+                'activityid' => $cm->instance,
+                'userid' => $student->id
             ]);
-    $DB->insert_record('speval_grades', [
-        'unitid'     => $submission->unitid,
-        'userid'     => $studentid,      // or $submission->userid depending on your logic
-        'activityid' => $submission->activityid,
-        'c1'         => $studentgrades[0],
-        'c2'         => $studentgrades[1],
-        'c3'         => $studentgrades[2],
-        'c4'         => $studentgrades[3],
-        'c5'         => $studentgrades[4],
-        'finalgrade' => $grade,
-    ]);
-
+            $DB->insert_record('speval_grades', [
+                'userid'     => $student->id,
+                'activityid' => $cm->instance,
+                'criteria1'  => 0,
+                'criteria2'  => 0,
+                'criteria3'  => 0,
+                'criteria4'  => 0,
+                'criteria5'  => 0,
+                'finalgrade' => 0
+            ]);
+        }
+    }
 }
 
-//need to add functionality to give 0 who did not submit peer evals
-
-
-    // foreach ($students as $student) {
-    //     if (!in_array($student->id, $processed_students)) {
-    //         // Student did not receive any peer evaluations, assign grade 0
-    //         $DB->delete_records('speval_grades', [
-    //             'activityid' => $cm->instance,
-    //             'userid' => $student->id
-    //         ]);
-    //         $DB->insert_record('speval_grades', [
-    //             'unitid'     => $courseid,
-    //             'userid'     => $student->id,
-    //             'activityid' => $cm->instance,
-    //             'c1'         => 0,
-    //             'c2'         => 0,
-    //             'c3'         => 0,
-    //             'c4'         => 0,
-    //             'c5'         => 0,
-    //             'finalgrade' => 0,
-    //         ]);
-    //     }
-    // }
-
-}
 }

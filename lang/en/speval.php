@@ -22,6 +22,7 @@ $string['results'] = 'Results';
 $string['criteria'] = 'Criteria';
 $string['gradeall'] = 'Grade All Evaluations';
 $string['speval:grade'] = 'Grade submissions in SPEVAL';
+ $string['nogrades'] = 'No Grades yet';
 
 $string['criteria1'] = 'Criteria 1';
 $string['criteria2'] = 'Criteria 2';

@@ -44,10 +44,13 @@ class form_handler {
 
         $peerids = array_keys($c1);
 
+        global $DB;
+        $spevalid = optional_param('spevalid', 0, PARAM_INT); // Get from form hidden field
         // Insert new evaluations
         foreach ($peerids as $peerid) {
             $record = (object)[
                 'unitid'      => $courseid,
+                'activityid'  => $spevalid,
                 'userid'      => $user->id,
                 'peerid'      => $peerid,
                 'comment'     => $comments[$peerid] ?? '',

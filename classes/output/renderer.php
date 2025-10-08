@@ -23,6 +23,8 @@ class renderer extends plugin_renderer_base {
         * @return string HTML
         */
 
+        global $DB, $USER;
+        
         // Initial info/landing page before evaluation starts
         $html = $this->output->heading(format_string($cm->name));                   
 
@@ -51,16 +53,26 @@ class renderer extends plugin_renderer_base {
 
         $html .= html_writer::end_div();
 
-        // Start button
+ // Check if the current user already submitted an evaluation
+    $has_submitted = $DB->record_exists('speval_eval', ['userid' => $USER->id]);
+
+    if ($has_submitted) {
+        // If the user already submitted, show a message instead of the start button
+        $html .= html_writer::div(
+            html_writer::tag('p', 'You have already submitted your evaluation. Thank you!', ['class' => 'alert alert-info'])
+        );
+    } else {
+        // Otherwise, show the start button
         $starturl = new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'start' => 1]);
-        
 
         $html .= html_writer::start_tag('form', ['method' => 'get', 'action' => $starturl]);
         $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cm->id]);
         $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'start', 'value' => 1]);
         $html .= html_writer::tag('button', 'Start Evaluation', ['type' => 'submit', 'class' => 'submit-button']);
         $html .= html_writer::end_tag('form');
-        return $html;
+    }
+
+    return $html;
     }
 
 
