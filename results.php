@@ -49,6 +49,19 @@ echo $OUTPUT->single_button(
     'post'
 );
 
+// New buttons to export CSV
+    echo $OUTPUT->single_button(
+        new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_eval']),
+        'Export Eval CSV',
+        'get'
+    );
+
+    echo $OUTPUT->single_button(
+        new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_grades']),
+        'Export Grades CSV',
+        'get'
+    );
+
 
 // Show results (can fetch from speval_grades here).
 $grades = $DB->get_records('speval_grades', ['activityid' => $cm->instance]);
