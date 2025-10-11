@@ -64,10 +64,11 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
             get_string('results', 'speval'),                                                                // uses lang/en/speval.php                                         
             $url,                                                                                           // Link to the results page
             navigation_node::TYPE_SETTING,                                                                   
-            null,                                                                                       
+            null,
             'spevalresults'                                                                                 // Unique key for this node
         );
     }
+
 
     // Add a 'Criteria' tab visible to teachers/managers.
     if (has_capability('mod/speval:addinstance', context_course::instance($PAGE->course->id))) {
@@ -82,7 +83,7 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
     }
 
 
-        // Add a new 'Progress' tab visible to teachers/managers.
+    // Add a new 'Progress' tab visible to teachers/managers.
     if (has_capability('mod/speval:addinstance', context_course::instance($PAGE->course->id))) {
         $url = new moodle_url('/mod/speval/progress.php', ['id' => $PAGE->cm->id]);
         $spevalnode->add(
@@ -94,6 +95,16 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
         );
     }
 
-}
 
-?>
+    // Add a new 'AI Analysis' tab visible to teachers/managers.
+    if (has_capability('mod/speval:addinstance', context_course::instance($PAGE->course->id))) {
+        $url = new moodle_url('/mod/speval/ai_analysis.php', ['id' => $PAGE->cm->id]);
+        $spevalnode->add(
+            'AI Analysis',
+            $url,
+            navigation_node::TYPE_SETTING,
+            null,
+            'spevalai'
+        );
+    }
+}

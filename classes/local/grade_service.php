@@ -105,4 +105,20 @@ class grade_service {
     }
 }
 
+ /**
+     * Calculate grades and run AI analysis
+     * @param object $cm Course module
+     * @param int $courseid Course ID
+     * @return array AI analysis results
+     */
+    public static function calculate_spe_grade_with_ai($cm, $courseid) {
+        // Calculate grades first
+        self::calculate_spe_grade($cm, $courseid);
+        
+        // Run AI analysis
+        $ai_results = \mod_speval\local\ai_service::analyze_evaluations($cm->instance);
+        
+        return $ai_results;
+    }
+
 }
