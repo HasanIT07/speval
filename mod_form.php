@@ -74,4 +74,9 @@ class mod_speval_mod_form extends moodleform_mod {
 		}
 	}
 }
+public function definition_after_data() {
+    // This method is required by Moodle's form system
+    // It's called after form data is processed
+}
+
 }
