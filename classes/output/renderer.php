@@ -28,9 +28,9 @@ class renderer extends plugin_renderer_base {
         // Initial info/landing page before evaluation starts
         $html = $this->output->heading(format_string($cm->name));                   
 
-        if (!empty($speval->intro)) {
-            $html .= $this->output->box(format_module_intro('speval', $speval, $cm->id), 'generalbox');                 
-        }
+        // if (!empty($speval->intro)) {
+        //     $html .= $this->output->box(format_module_intro('speval', $speval, $cm->id), 'generalbox');                 
+        // }
 
         // Show grading info if available
         if (isset($speval->grade)) {
@@ -39,35 +39,29 @@ class renderer extends plugin_renderer_base {
 
         // Initial instructions
         $html .= html_writer::start_div('speval-container');
+        
             $html .= html_writer::tag('h2', 'Self & Peer Evaluation');
-            $html .= html_writer::tag('p',
-                '<b>Please note:</b> Everything you put into this form will be kept strictly confidential by the unit coordinator.<br>' .
-                '<b>Contribution Ratings:</b><br>' .
-                '- Very Poor: Very poor, or even obstructive, contribution to the project process<br>' .
-                '- Poor: Poor contribution to the project process<br>' .
-                '- Average: Acceptable contribution to the project process<br>' .
-                '- Good: Good contribution to the project process<br>' .
-                '- Excellent: Excellent contribution to the project process<br><br>' .
-                '<b>Using the assessment scales above, fill out the following.</b>'
-            );
+            $html .= $this->output->box(format_module_intro('speval', $speval, $cm->id), 'generalbox');     
+            // $html .= html_writer::tag('p',
+            //     '<b>Please note:</b> Everything you put into this form will be kept strictly confidential by the unit coordinator.<br>' .
+            //     '<b>Contribution Ratings:</b><br>' .
+            //     '- Very Poor: Very poor, or even obstructive, contribution to the project process<br>' .
+            //     '- Poor: Poor contribution to the project process<br>' .
+            //     '- Average: Acceptable contribution to the project process<br>' .
+            //     '- Good: Good contribution to the project process<br>' .
+            //     '- Excellent: Excellent contribution to the project process<br><br>' .
+            //     '<b>Using the assessment scales above, fill out the following.</b>'
+            // );
 
+            $starturl = new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'start' => 1]);
+        
+            $html .= html_writer::start_tag('form', ['method' => 'get', 'action' => $starturl, 'style' => 'display:inline-block;']);
+            $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cm->id]);
+            $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'start', 'value' => 1]);
+            $html .= html_writer::tag('button', 'Start Self and Peer Evaluation', ['type' => 'submit', 'class' => 'spebutton']);
+            $html .= html_writer::end_tag('form');
+            
         $html .= html_writer::end_div();
-
-    // Check if the current user already submitted an evaluation
-    $has_submitted = $DB->record_exists('speval_eval', ['userid' => $USER->id]);
-
-    // if ($has_submitted) {
-
-    // } else {
-        // Otherwise, show the start button
-        $starturl = new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'start' => 1]);
-
-        $html .= html_writer::start_tag('form', ['method' => 'get', 'action' => $starturl]);
-        $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cm->id]);
-        $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'start', 'value' => 1]);
-        $html .= html_writer::tag('button', 'Start Evaluation', ['type' => 'submit', 'class' => 'submit-button']);
-        $html .= html_writer::end_tag('form');
-    // }
 
     return $html;
     }

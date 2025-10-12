@@ -22,10 +22,28 @@ $string['results'] = 'Results';
 $string['criteria'] = 'Criteria';
 $string['gradeall'] = 'Grade All Evaluations';
 $string['speval:grade'] = 'Grade submissions in SPEVAL';
- $string['nogrades'] = 'No Grades yet';
- $string['editgrade'] = 'Edit Grade';
+$string['nogrades'] = 'No Grades yet';
+$string['editgrade'] = 'Edit Grade';
 $string['gradesuccess'] = 'Grade updated successfully';
 $string['progress'] = 'Progress of Submission';
+
+$string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put into this form will be kept strictly confidential by the unit coordinator.</div><div> </div>
+<div><strong>Contribution Ratings:</strong></div>
+<div> </div>
+<div>
+  <ol>
+    <li><strong>Very Poor:</strong> Very poor, or even obstructive, contribution
+      to the project process</li>
+    <li><strong>Poor:</strong> Poor contribution to the project process</li>
+    <li><strong>Average:</strong> Acceptable contribution to the project
+      process.</li>
+    <li><strong>Good:</strong> Good contribution to the project process.</li>
+    <li><strong>Excellent:</strong> Excellent contribution to the project
+      process</li>
+  </ol>
+</div>
+<div><strong>Using the assessment scales above, evaluate your peers.</strong>
+</div>';
 
 $string['criteria1'] = 'Criteria 1';
 $string['criteria2'] = 'Criteria 2';

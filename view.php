@@ -41,6 +41,7 @@ require_capability('mod/speval:view', $context);                                
 $PAGE->set_cm($cm);                                                                 // Sets cm, course and page context
 $PAGE->set_url(new moodle_url('/mod/speval/view.php', ['id' => $cm->id]));          // Allows this view to have a public link
 $PAGE->requires->css(new moodle_url('/mod/speval/styles.css', ['v' => time()]));    // Links CSS Styles
+$PAGE->activityheader->disable();
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 // 5. Get renderer class
@@ -62,31 +63,34 @@ $studentHasGrade = $DB->record_exists('speval_grades', [                        
     'activityid' => $speval->id
 ]);
 
+
+
+
 if ($submission){
     if ($studentHasGrade) {
-    echo $renderer->display_grade_for_student($USER, $speval);
+        echo $renderer->display_grade_for_student($USER, $speval);
     
     } else {
-        echo "no grade.";
+        echo "This activity has not been graded yet.";
     }
 
 } else {
     
     if (!$start) {
-        echo $renderer->student_landing_page($cm, $speval);                         // All the HTML for the start page is in the renderer class
+        echo $renderer->student_landing_page($cm, $speval);                         // Show the landing page
         echo $OUTPUT->footer();
         exit;
     }
-    
+        
+    $studentsInGroup = util::get_students_in_same_groups($speval->id, $USER);
+    echo $renderer->evaluation_form($speval, $studentsInGroup);
+        
     // Handle form submission (all-in-one)
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {               // Check if there is a POST REQUEST ("Submit all evaluations" is clicked)
         form_handler::process_submission($COURSE->id, $USER, $speval);                       // Inserts evaluation records into the database table mdl_speval_eval.
         echo $renderer->submission_success_notification();
     }
-    
-    $studentsInGroup = util::get_students_in_same_groups($speval->id, $USER);
-    echo $renderer->evaluation_form($speval, $studentsInGroup);
-    
+
     echo $OUTPUT->footer();
 }
 

@@ -57,6 +57,18 @@ body {
     color: #555;
 }
 
+.spebutton{
+    padding: 12px 24px;
+    font-size: 1em;
+    font-weight: bold;
+    color: #fff;
+    background-color: #3772b3;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
 .form-row label.scale-value{
     font-weight: normal;
     color: #555;

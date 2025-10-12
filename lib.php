@@ -60,54 +60,27 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
     global $USER;
 
 
-    // Add a 'Results' tab to the activity navigation if the user has view capability
-    if (!empty($spevalnode) && has_capability('mod/speval:addinstance', $PAGE->cm->context)) {              // Ensure only teachers can see this page (Stuednts should not see tabs. There are no moodle activity that allow this).
-        $url = new moodle_url('/mod/speval/results.php', ['id' => $PAGE->cm->id]);                          // Create the URL to the results page.
-        $spevalnode->add(                                                                                   // Add the 'Results' tab to the activity navigation.
-            get_string('results', 'speval'),                                                                // uses lang/en/speval.php                                         
-            $url,                                                                                           // Link to the results page
-            navigation_node::TYPE_SETTING,                                                                   
-            null,
-            'spevalresults'                                                                                 // Unique key for this node
-        );
-    }
+    // Only add tabs if the activity node exists
+    if (!empty($spevalnode)) {
 
+        // Ensure only teachers can see this page (Stuednts should not see tabs. There are no moodle activity that allow this).
+        if (has_capability('mod/speval:addinstance', $PAGE->cm->context)) {              
+            
+            // Add a 'Results' tab
+            $resultsUrl = new moodle_url('/mod/speval/results.php', ['id' => $PAGE->cm->id]);   
+            $spevalnode->add(get_string('results', 'speval'), $resultsUrl, navigation_node::TYPE_SETTING, null, 'spevalresults');
 
-    // Add a 'Criteria' tab visible to teachers/managers.
-    if (has_capability('mod/speval:addinstance', context_course::instance($PAGE->course->id))) {
-        $url = new moodle_url('/mod/speval/criteria.php', ['id' => $PAGE->cm->id]);
-        $spevalnode->add(
-            get_string('criteria', 'mod_speval'),
-            $url,
-            navigation_node::TYPE_SETTING,
-            null,
-            'spevalcriteria'
-        );
-    }
+            // Add a 'Criteria' tab
+            $criteriaUrl = new moodle_url('/mod/speval/criteria.php', ['id' => $PAGE->cm->id]);
+            $spevalnode->add(get_string('criteria', 'mod_speval'), $criteriaUrl, navigation_node::TYPE_SETTING, null, 'spevalcriteria');
 
+            // Add a new 'Progress' tab
+            $progressUrl = new moodle_url('/mod/speval/progress.php', ['id' => $PAGE->cm->id]);
+            $spevalnode->add(get_string('progress', 'mod_speval'), $progressUrl, navigation_node::TYPE_SETTING, null, 'spevalprogress');
 
-    // Add a new 'Progress' tab visible to teachers/managers.
-    if (has_capability('mod/speval:addinstance', context_course::instance($PAGE->course->id))) {
-        $url = new moodle_url('/mod/speval/progress.php', ['id' => $PAGE->cm->id]);
-        $spevalnode->add(
-            get_string('progress', 'mod_speval'),
-            $url,
-            navigation_node::TYPE_SETTING,
-            null,
-            'spevalprogress'
-        );
-    }
-
-
-    // Add a new 'AI Analysis' tab visible to teachers/managers.
-    if (has_capability('mod/speval:addinstance', context_course::instance($PAGE->course->id))) {
-        $url = new moodle_url('/mod/speval/ai_analysis.php', ['id' => $PAGE->cm->id]);
-        $spevalnode->add(
-            'AI Analysis',
-            $url,
-            navigation_node::TYPE_SETTING,
-            null,
-            'spevalai'
-        );
+            // Add a 'AI Analysis' tab
+            $aimodelUrl = new moodle_url('/mod/speval/ai_analysis.php', ['id' => $PAGE->cm->id]);
+            $spevalnode->add('AI Analysis', $aimodelUrl, navigation_node::TYPE_SETTING, null, 'spevalai');
+        }
     }
 }
