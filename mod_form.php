@@ -73,7 +73,36 @@ class mod_speval_mod_form extends moodleform_mod {
 			$mform->setDefault('linkedassign', 0);
 		}
 	}
+
+
+	// -------------------------------------------------------------------------------
+	// Timing
+	$mform->addElement('header', 'timing', 'Timing');
+	$mform->addElement('date_time_selector', 'timeopen', get_string('timeopen', 'mod_speval'), ['optional' => true]);
+	$mform->setType('timeopen', PARAM_INT);
+	$mform->addElement('date_time_selector', 'timeclose', get_string('timeclose', 'mod_speval'), ['optional' => true]);
+	$mform->setType('timeclose', PARAM_INT);
+	$overdueoptions = [
+		'prevent' => get_string('overdue_prevent', 'mod_speval'),
+		'allow' => get_string('overdue_allow', 'mod_speval'),
+		'marklate' => get_string('overdue_marklate', 'mod_speval')
+	];
+	$mform->addElement('select', 'overduehandling', get_string('overduehandling', 'mod_speval'), $overdueoptions);
+	$mform->setType('overduehandling', PARAM_ALPHANUMEXT);
+	if (!empty($this->current)) {
+		$mform->setDefault('timeopen', $this->current->timeopen ?? 0);
+		$mform->setDefault('timeclose', $this->current->timeclose ?? 0);
+		$mform->setDefault('overduehandling', $this->current->overduehandling ?? 'prevent');
+	}
+
+	// --------------------------------------------------------------------------------
+	// Standard elements, common to all modules.
+	$this->standard_coursemodule_elements();
+
+	// Action buttons (Save/Cancel).
+	$this->add_action_buttons();
 }
+
 public function definition_after_data() {
     // This method is required by Moodle's form system
     // It's called after form data is processed
