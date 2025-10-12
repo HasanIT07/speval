@@ -1,7 +1,6 @@
 <?php
 /*
-	* Form definition for the speval module.
-	* This file relates to the teacher view for adding the activity to a course.
+	* This file relates to the teacher settings tab for adding or modifying an SPE activity.
 */
 
 defined('MOODLE_INTERNAL') || die();

@@ -4,7 +4,7 @@ defined('MOODLE_INTERNAL') || die();
 $capabilities = [
     'mod/speval:addinstance' => [
         'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
+        'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,

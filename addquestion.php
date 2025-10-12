@@ -14,6 +14,7 @@ $PAGE->set_heading(get_string('addquestion', 'mod_speval'));
 
 
 // Navigation tabs
+// if (has_capability('mod/speval:manage', $context)) {
 $tabs = [
 	new tabobject('spe', new moodle_url('/mod/speval/view.php', ['id' => $cm->id]), get_string('pluginname', 'mod_speval')),
 	new tabobject('settings', new moodle_url('/mod/speval/edit.php', ['id' => $cm->id]), get_string('settings')),
@@ -23,6 +24,7 @@ $tabs = [
 ];
 $selected = 'addquestion';
 echo print_tabs([$tabs], $selected, null, null, true);
+// }
 
 echo $OUTPUT->header();
 echo '<h2>' . get_string('addquestion', 'mod_speval') . '</h2>';

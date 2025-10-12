@@ -9,7 +9,7 @@ namespace mod_speval\local;
 defined('MOODLE_INTERNAL') || die();
 
 class form_handler {
-    public static function process_submission($courseid, $user) {
+    public static function process_submission($courseid, $user, $speval) {
         /* 
          * Process the form submission for self and peer evaluations.
          * Inserts evaluation records into the database table speval_eval.
@@ -45,12 +45,12 @@ class form_handler {
         $peerids = array_keys($c1);
 
         global $DB;
-        $spevalid = optional_param('spevalid', 0, PARAM_INT); // Get from form hidden field
+        
         // Insert new evaluations
         foreach ($peerids as $peerid) {
             $record = (object)[
                 'unitid'      => $courseid,
-                'activityid'  => $spevalid,
+                'activityid'  => $speval->id,
                 'userid'      => $user->id,
                 'peerid'      => $peerid,
                 'comment'     => $comments[$peerid] ?? '',

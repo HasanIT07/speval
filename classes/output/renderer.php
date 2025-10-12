@@ -53,15 +53,12 @@ class renderer extends plugin_renderer_base {
 
         $html .= html_writer::end_div();
 
- // Check if the current user already submitted an evaluation
+    // Check if the current user already submitted an evaluation
     $has_submitted = $DB->record_exists('speval_eval', ['userid' => $USER->id]);
 
-    if ($has_submitted) {
-        // If the user already submitted, show a message instead of the start button
-        $html .= html_writer::div(
-            html_writer::tag('p', 'You have already submitted your evaluation. Thank you!', ['class' => 'alert alert-info'])
-        );
-    } else {
+    // if ($has_submitted) {
+
+    // } else {
         // Otherwise, show the start button
         $starturl = new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'start' => 1]);
 
@@ -70,7 +67,7 @@ class renderer extends plugin_renderer_base {
         $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'start', 'value' => 1]);
         $html .= html_writer::tag('button', 'Start Evaluation', ['type' => 'submit', 'class' => 'submit-button']);
         $html .= html_writer::end_tag('form');
-    }
+    // }
 
     return $html;
     }
@@ -116,24 +113,26 @@ class renderer extends plugin_renderer_base {
         $html .= html_writer::end_div();
 
         // Simple JS timer (no localStorage)
-        $html .= "<script>
-        (function() {
-            var btn = document.getElementById('speval-submit-btn');
-            var timerSpan = document.getElementById('speval-timer');
-            var msg = document.getElementById('speval-timer-msg');
-            var seconds = 60;
-            var interval = setInterval(function() {
-                seconds--;
-                timerSpan.textContent = seconds;
-                if (seconds <= 0) {
-                    clearInterval(interval);
-                    btn.disabled = false;
-                    btn.style.opacity = 1;
-                    msg.textContent = '';
-                }
-            }, 1000);
-        })();
-        </script>";
+
+        // Lets temporarely comment this so testing can be done faster
+        // $html .= "<script>
+        // (function() {
+        //     var btn = document.getElementById('speval-submit-btn');
+        //     var timerSpan = document.getElementById('speval-timer');
+        //     var msg = document.getElementById('speval-timer-msg');
+        //     var seconds = 60;
+        //     var interval = setInterval(function() {
+        //         seconds--;
+        //         timerSpan.textContent = seconds;
+        //         if (seconds <= 0) {
+        //             clearInterval(interval);
+        //             btn.disabled = false;
+        //             btn.style.opacity = 1;
+        //             msg.textContent = '';
+        //         }
+        //     }, 1000);
+        // })();
+        // </script>";
 
         return $html;
     }
@@ -227,5 +226,31 @@ class renderer extends plugin_renderer_base {
 
         return $html;
     }
+
+
+    public function display_grade_for_student($user, $speval){
+        global $DB;
+
+        // If the user already submitted, show a message instead of the start button
+        $html = html_writer::div(
+            html_writer::tag('p', 'You have already submitted your evaluation. Thank you!', ['class' => 'alert alert-info'])
+        );
+        
+        $html .= html_writer::tag('h3', 'Your Grade');
+
+        $grade = $DB->get_record('speval_grades', [
+            'userid' => $user->id,
+            'activityid' => $speval->id
+        ]);
+
+        if ($grade) {
+            $html .= html_writer::tag('p', "Final Grade: $grade->finalgrade");
+        } else {
+            $html .= html_writer::tag('p', "No grade available yet.");
+        }
+
+        return $html;
+    }
+
 }
 ?>

@@ -54,11 +54,14 @@ function speval_update_instance(stdClass $speval, mod_speval_mod_form $mform = n
 }
 
 
+
 function speval_extend_settings_navigation(settings_navigation $settings, navigation_node $spevalnode) {
     global $PAGE;
+    global $USER;
+
 
     // Add a 'Results' tab to the activity navigation if the user has view capability
-    if (!empty($spevalnode) && has_capability('mod/speval:view', $PAGE->cm->context)) {                     // Ensure the activity node is present.
+    if (!empty($spevalnode) && has_capability('mod/speval:addinstance', $PAGE->cm->context)) {              // Ensure only teachers can see this page (Stuednts should not see tabs. There are no moodle activity that allow this).
         $url = new moodle_url('/mod/speval/results.php', ['id' => $PAGE->cm->id]);                          // Create the URL to the results page.
         $spevalnode->add(                                                                                   // Add the 'Results' tab to the activity navigation.
             get_string('results', 'speval'),                                                                // uses lang/en/speval.php                                         

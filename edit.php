@@ -20,7 +20,8 @@ $PAGE->set_url(new moodle_url('/mod/speval/edit.php', ['id' => $id]));
 $PAGE->set_title(get_string('editquestions', 'mod_speval'));
 $PAGE->set_heading($course->fullname);
 
-// Navigation tabs
+// Navigation tabs for teachers only
+// if (has_capability('mod/speval:manage', $context)) {
 $tabs = [
     new tabobject('spe', new moodle_url('/mod/speval/view.php', ['id' => $cm->id]), get_string('pluginname', 'mod_speval')),
     new tabobject('settings', new moodle_url('/mod/speval/edit.php', ['id' => $cm->id]), get_string('settings')),
@@ -30,6 +31,7 @@ $tabs = [
 ];
 $selected = 'settings';
 echo print_tabs([$tabs], $selected, null, null, true);
+// }
 
 // Define the form for editing evaluation questions.
 class speval_edit_form extends moodleform {
