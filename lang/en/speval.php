@@ -25,6 +25,7 @@ $string['speval:grade'] = 'Grade submissions in SPEVAL';
 $string['nogrades'] = 'No Grades yet';
 $string['editgrade'] = 'Edit Grade';
 $string['gradesuccess'] = 'Grade updated successfully';
+$string['gradesnotcalculated'] = 'AI analysis is unavailable because grades are not calculated yet.';
 $string['progress'] = 'Progress of Submission';
 
 $string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put into this form will be kept strictly confidential by the unit coordinator.</div><div> </div>

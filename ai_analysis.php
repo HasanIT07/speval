@@ -16,22 +16,25 @@ $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 echo $OUTPUT->heading('AI Analysis Results');
 
-// Get AI analysis results
-$flags = $DB->get_records('speval_flag', ['activityid' => $cm->instance]);
+// Get AI analysis results from individual flags
+$flags = $DB->get_records('speval_flag_individual', ['activityid' => $cm->instance]);
 
 if ($flags) {
     $table = new html_table();
-    $table->head = ['Group', 'Misbehaviour', 'Mark Discrepancy', 'Comment Discrepancy', 'Notes'];
+    $table->head = ['Evaluator', 'Peer', 'Group', 'Misbehaviour Category', 'Mark Discrepancy', 'Comment Discrepancy'];
     
     foreach ($flags as $flag) {
-        $group_name = groups_get_group_name($flag->groupid);
-        
+        $group_name = $flag->groupid ? groups_get_group_name($flag->groupid) : '-';
+        $evaluator = $DB->get_field('user', $DB->sql_fullname(), ['id' => $flag->userid]);
+        $peer = $DB->get_field('user', $DB->sql_fullname(), ['id' => $flag->peer]);
+
         $table->data[] = [
+            $evaluator ?: $flag->userid,
+            $peer ?: $flag->peer,
             $group_name,
-            $flag->misbehaviourflag ? 'Yes' : 'No',
-            $flag->markdiscrepancyflag ? 'Yes' : 'No',
-            $flag->commentdiscrepancyflag ? 'Yes' : 'No',
-            $flag->notes
+            (int)$flag->misbehaviorcategory,
+            ((int)$flag->markdiscrepancy) ? 'Yes' : 'No',
+            ((int)$flag->commentdiscrepancy) ? 'Yes' : 'No'
         ];
     }
     

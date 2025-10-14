@@ -13,6 +13,11 @@ class ai_service {
     public static function analyze_evaluations($activityid) {
         global $DB;
         
+        // Ensure grades exist for this activity before running AI
+        if (!$DB->record_exists('speval_grades', ['activityid' => $activityid])) {
+            throw new \moodle_exception('gradesnotcalculated', 'mod_speval');
+        }
+
         // Get all evaluations for this activity
         $evaluations = $DB->get_records('speval_eval', ['activityid' => $activityid]);
         
@@ -26,7 +31,7 @@ class ai_service {
         // Call AI module
         $ai_result = self::call_ai_module($analysis_data);
         
-        if ($ai_result && $ai_result['status'] === 'success') {
+        if ($ai_result && isset($ai_result['status']) && $ai_result['status'] === 'success' && !empty($ai_result['results'])) {
             return self::store_analysis_results($activityid, $ai_result['results']);
         }
         
@@ -39,9 +44,15 @@ class ai_service {
      * @return array
      */
     private static function prepare_analysis_data($evaluations) {
+        global $DB;
         $data = [];
+
+        // Prefetch final grades for peers in this activity
+        $activityid = reset($evaluations)->activityid;
+        $grades = $DB->get_records('speval_grades', ['activityid' => $activityid], '', 'userid, id, finalgrade');
         
         foreach ($evaluations as $eval) {
+            $peerfinal = isset($grades[$eval->peerid]) ? (float)$grades[$eval->peerid]->finalgrade : null;
             $data[] = [
                 'id' => $eval->id,
                 'userid' => $eval->userid,
@@ -52,8 +63,9 @@ class ai_service {
                 'criteria3' => $eval->criteria3,
                 'criteria4' => $eval->criteria4,
                 'criteria5' => $eval->criteria5,
+                'finalgrade' => $peerfinal, // pass peer's computed final grade
                 'comment1' => $eval->comment1 ?? '',
-                'comment2' => $eval->comment2 ?? '',
+                'comment2' => '', // ignore comment2 per requirements
                 'timecreated' => $eval->timecreated
             ];
         }
@@ -137,35 +149,37 @@ class ai_service {
             if (isset($result['error'])) {
                 continue; // Skip error results
             }
-            
             // Get group information for this peer
             $group_info = self::get_peer_group_info($result['peer_id'], $activityid);
-            
-            $flag_record = [
+
+            // Map AI result to individual flags record
+            $individual = [
+                'userid' => $result['evaluator_id'],
+                'peer' => $result['peer_id'],
                 'activityid' => $activityid,
-                'groupingid' => $group_info['groupingid'],
-                'groupid' => $group_info['groupid'],
-                'misbehaviourflag' => $result['misbehaviour_detected'] ? 1 : 0,
-                'markdiscrepancyflag' => $result['mark_discrepancy_detected'] ? 1 : 0,
-                'commentdiscrepancyflag' => $result['comment_discrepancy_detected'] ? 1 : 0,
-                'notes' => $result['explanation'],
+                'grouping' => $group_info['groupingid'] ?? null,
+                'groupid' => $group_info['groupid'] ?? null,
+                'commentdiscrepancy' => $result['comment_discrepancy_detected'] ? 1 : 0,
+                'markdiscrepancy' => $result['mark_discrepancy_detected'] ? 1 : 0,
+                'misbehaviorcategory' => isset($result['misbehaviour_category_index']) ? (int)$result['misbehaviour_category_index'] : 1,
                 'timecreated' => $result['analysis_timestamp']
             ];
-            
-            // Check if flag already exists
-            $existing = $DB->get_record('speval_flag', [
-                'activityid' => $activityid,
-                'groupid' => $group_info['groupid']
+
+            // Upsert per unique (userid, peer, activityid)
+            $existing = $DB->get_record('speval_flag_individual', [
+                'userid' => $individual['userid'],
+                'peer' => $individual['peer'],
+                'activityid' => $activityid
             ]);
-            
+
             if ($existing) {
-                $flag_record['id'] = $existing->id;
-                $DB->update_record('speval_flag', (object)$flag_record);
+                $individual['id'] = $existing->id;
+                $DB->update_record('speval_flag_individual', (object)$individual);
             } else {
-                $flag_record['id'] = $DB->insert_record('speval_flag', (object)$flag_record);
+                $individual['id'] = $DB->insert_record('speval_flag_individual', (object)$individual);
             }
-            
-            $stored_results[] = $flag_record;
+
+            $stored_results[] = $individual;
         }
         
         return $stored_results;

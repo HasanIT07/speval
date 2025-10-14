@@ -17,7 +17,7 @@ ZS_MODEL = "facebook/bart-large-mnli"
 
 # Clause handling: favor the final judgement after contrast words
 CONTRAST_SPLIT = re.compile(r"\b(?:but|however|although|though|yet|nevertheless|nonetheless)\b", re.I)
-W_BEFORE, W_AFTER = 0.3, 0.7
+W_BEFORE, W_AFTER = 0.7, 0.3
 
 # Thresholds (configurable via environment or config file)
 CONF_THRESHOLD = float(os.getenv('SPEVAL_CONF_THRESHOLD', '0.20'))
@@ -162,15 +162,21 @@ def analyze_single_evaluation(eval_data: Dict) -> Dict:
     """
     # Combine all comments for analysis
     comments = []
-    for i in range(1, 3):  # comment1, comment2
+    for i in [1]:  # only comment1, ignore comment2 per requirements
         comment = clean_text(eval_data.get(f'comment{i}', ''))
         if comment:
             comments.append(comment)
     
     combined_comment = ' '.join(comments)
     
-    # Calculate average mark
-    avg_mark_val = avg_mark(eval_data)
+    # Calculate average mark, prefer provided finalgrade if available
+    if 'finalgrade' in eval_data and eval_data['finalgrade'] is not None:
+        try:
+            avg_mark_val = float(eval_data['finalgrade'])
+        except Exception:
+            avg_mark_val = avg_mark(eval_data)
+    else:
+        avg_mark_val = avg_mark(eval_data)
     
     # Analyze misbehaviour
     misbehaviour_detected, misbehaviour_label, misbehaviour_confidence = misbehaviour_flag(combined_comment)
@@ -190,6 +196,16 @@ def analyze_single_evaluation(eval_data: Dict) -> Dict:
     
     explanation = "; ".join(explanation_parts) if explanation_parts else "No issues detected"
     
+    # Determine misbehaviour category index (1-6) based on predicted label
+    mis_cat_index = 1
+    try:
+        if misbehaviour_label in MIS_LABELS:
+            mis_cat_index = int(MIS_LABELS.index(misbehaviour_label)) + 1
+        else:
+            mis_cat_index = 1
+    except Exception:
+        mis_cat_index = 1
+
     return {
         'evaluation_id': eval_data.get('id'),
         'peer_id': eval_data.get('peerid'),
@@ -198,6 +214,7 @@ def analyze_single_evaluation(eval_data: Dict) -> Dict:
         'misbehaviour_detected': misbehaviour_detected,
         'misbehaviour_label': misbehaviour_label,
         'misbehaviour_confidence': misbehaviour_confidence,
+        'misbehaviour_category_index': mis_cat_index,
         'mark_discrepancy_detected': mark_discrepancy_detected,
         'comment_discrepancy_detected': comment_discrepancy_detected,
         'sentiment_norm': sentiment_norm,

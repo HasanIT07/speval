@@ -87,29 +87,28 @@
         </INDEXES>
     </TABLE>
 
-
-    <TABLE NAME="speval_flag" COMMENT="Stores flags for groups (misbehaviour/comment discrepancy/mark discrepancy/etc)">
+    <TABLE NAME="speval_flag_individual" COMMENT="Stores AI flags per evaluator-peer pair">
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
+            <FIELD NAME="userid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Evaluator user id"/>
+            <FIELD NAME="peer" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Peer being evaluated"/>
             <FIELD NAME="activityid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="SPEval activity instance"/>
-            <FIELD NAME="groupingid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Optional grouping ID, if applicable"/>
-            <FIELD NAME="groupid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Group/group evaluated"/>
-            <FIELD NAME="misbehaviourflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if potential misbehaviour is found, 0 otherwise"/>
-            <FIELD NAME="markdiscrepancyflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if mark discrepancy is found, 0 otherwise"/>                        
-            <FIELD NAME="commentdiscrepancyflag" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if comment discrepancy is found, 0 otherwise"/>                        
-            <FIELD NAME="notes" TYPE="text" SEQUENCE="false" NOTNULL="false" COMMENT="Optional details, e.g., AI comment or explanation"/>
+            <FIELD NAME="grouping" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Grouping id if applicable"/>
+            <FIELD NAME="groupid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Group id if applicable"/>
+            <FIELD NAME="commentdiscrepancy" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if comment discrepancy is found"/>
+            <FIELD NAME="markdiscrepancy" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if mark discrepancy is found"/>
+            <FIELD NAME="misbehaviorcategory" TYPE="int" LENGTH="2" SEQUENCE="false" NOTNULL="true" DEFAULT="1" COMMENT="1-6 category from AI module"/>
             <FIELD NAME="timecreated" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Timestamp when flag was created"/>
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             <KEY NAME="activityid_fk" TYPE="foreign" FIELDS="activityid" REFTABLE="speval" REFFIELDS="id"/>
-            <KEY NAME="groupid_fk" TYPE="foreign" FIELDS="groupid" REFTABLE="groups" REFFIELDS="id"/>
-            <KEY NAME="groupingid_fk" TYPE="foreign" FIELDS="groupingid" REFTABLE="groupings" REFFIELDS="id"/>
+            <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+            <KEY NAME="peer_fk" TYPE="foreign" FIELDS="peer" REFTABLE="user" REFFIELDS="id"/>
         </KEYS>
         <INDEXES>
-            <INDEX NAME="activity_group_unique" UNIQUE="true" FIELDS="activityid, groupid"/>
+            <INDEX NAME="uniq_user_peer_activity" UNIQUE="true" FIELDS="userid, peer, activityid"/>
             <INDEX NAME="activityid" UNIQUE="false" FIELDS="activityid"/>
-            <INDEX NAME="groupid" UNIQUE="false" FIELDS="groupid"/>
         </INDEXES>
     </TABLE>
 
