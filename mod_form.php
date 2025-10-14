@@ -64,14 +64,14 @@ class mod_speval_mod_form extends moodleform_mod {
 		$mform->setType('grouping', PARAM_INT);
 		$mform->hideIf('grouping', 'linkoption', 'neq', 0);
 
-		// Set defaults if editing existing instance.
+		// Load settings from current instance
 		if (!empty($this->current)) {
 			if (!empty($this->current->linkedassign)) {
 				$mform->setDefault('linkoption', 1);
 				$mform->setDefault('linkedassign', $this->current->linkedassign);
-			} else {
+			} else if (!empty($this->current->grouping)){
 				$mform->setDefault('linkoption', 0);
-				$mform->setDefault('linkedassign', 0);
+				$mform->setDefault('grouping', $this->current->grouping);
 			}
 		}
 

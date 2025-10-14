@@ -14,12 +14,13 @@ function speval_add_instance(stdClass $speval, mod_speval_mod_form $mform = null
 
     $speval->timemodified = time();
 
-    if (empty($speval->linkedassign)) {
+    // Ensure mutual exclusivity
+    if ($speval->linkoption == 0) { // Standalone mode
         $speval->linkedassign = null;
-    } else{
+    } else if ($speval->linkoption == 1) { // Linked to assignment
         $speval->grouping = null;
     }
-
+    
     $id = $DB->insert_record('speval', $speval);
     return $id;
 }
@@ -45,9 +46,10 @@ function speval_update_instance(stdClass $speval, mod_speval_mod_form $mform = n
     $speval->timemodified = time();
     $speval->id = $speval->instance;
     
-    if (empty($speval->linkedassign)) {
+    // Ensure mutual exclusivity
+    if ($speval->linkoption == 0) { // Standalone mode
         $speval->linkedassign = null;
-    } else{
+    } else if ($speval->linkoption == 1) { // Linked to assignment
         $speval->grouping = null;
     }
 
