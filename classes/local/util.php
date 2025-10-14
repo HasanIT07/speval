@@ -104,6 +104,10 @@ class util {
                 $criteriaObject->{"predefined_criteria{$i}"} = $criteria->questionbankid ?? 0;
                 $crit_text_record = $DB->get_record('speval_criteria_bank', ['id' => $criteria->questionbankid]);
                 $criteriaObject->{"criteria_text{$i}"} = $crit_text_record->questiontext;
+            
+            // If both questiontext and questionbankid have empty values, set a default for criteriaObject
+            } else {
+                $criteriaObject->{"criteria_text{$i}"} = "";
             }
 
             

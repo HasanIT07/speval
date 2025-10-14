@@ -39,10 +39,12 @@ class mod_speval_mod_form extends moodleform_mod {
 		$mform->setType('linkoption', PARAM_INT);
 		
 		// If linked, select assignment from course.
-		$assignments = $DB->get_records('assign', ['course' => $COURSE->id]);
+		$assignments = $DB->get_records('assign', ['course' => $COURSE->id, 'teamsubmission' => 1]);
 		$assignmentoptions = [0 => "select assignment"];
 		foreach ($assignments as $assign) {
-			$assignmentoptions[$assign->id] = format_string($assign->name);
+			if (!empty($assign->teamsubmissiongroupingid)){ // Do not show unless there is a grouping id set to such assignment
+				$assignmentoptions[$assign->id] = format_string($assign->name); // Populate assignmentoptions
+			}
 		}
 
 		// Linked assignment dropdown (hidden if standalone).
@@ -52,7 +54,7 @@ class mod_speval_mod_form extends moodleform_mod {
 
 		// If not linked, select grouping from course.
 		$groupings = groups_get_all_groupings($COURSE->id);
-		$groupingoptions = [1 => "select grouping"];
+		$groupingoptions = [0 => "select grouping"];
 		foreach($groupings as $grouping){
 			$groupingoptions[$grouping->id] = format_string($grouping->name);
 		}
@@ -103,10 +105,32 @@ class mod_speval_mod_form extends moodleform_mod {
 	}
 
 
+	public function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+    	$linkoption = $data['linkoption'];
+    	$grouping = $data['grouping'];
+		$linkedassign = $data['linkedassign'];
+		
+		// Prevent not linking a grouping
+		if ($linkoption == 0 && $grouping == 0){
+			$errors['grouping'] = get_string('mustselectgrouping', 'mod_speval');
+		}
+		
+		// Prevent not linking an assignment
+		if ($linkoption == 1 && $linkedassign == 0){
+			$errors['linkedassign'] = get_string('mustselectassign', 'mod_speval');
+		}
+
+        return $errors;
+    }
+
+
+
 	public function data_preprocessing(&$default_values) {
 		parent::data_preprocessing($default_values);
 
-		// Only set a default for new instances (no intro yet)
+		// Only set a default for new instance - This autoloads the description.
 		if (empty($this->current->instance)) {
 			$default_values['introeditor']['text'] = get_string('defaultintro', 'mod_speval');
 			$default_values['introeditor']['format'] = FORMAT_HTML;

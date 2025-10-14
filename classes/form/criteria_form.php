@@ -47,6 +47,38 @@ class criteria_form extends \moodleform {
         // Submit buttons
         $this->add_action_buttons(true, get_string('savechanges'));
     }
+
+
+    public function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+        $seen = [];
+        $length = $this->_customdata['criteriaData']->length ?? 1;
+
+        for ($i = 1; $i <= $length; $i++) {
+            $fieldname = "predefined_criteria{$i}";
+            $value = $data[$fieldname] ?? 0;
+
+            if ($value != 0) { // ignore "Other"
+                if (in_array($value, $seen)) {
+                    $errors[$fieldname] = get_string('duplicatecriteria', 'mod_speval');
+                } else {
+                    $seen[] = $value;
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+
+
+
+
+
+
+
+
     
     /**
      * Get options from criteria bank
@@ -64,22 +96,3 @@ class criteria_form extends \moodleform {
         return $options;
     }
 }
-
-// defined('MOODLE_INTERNAL') || die();
-
-// class criteria_form extends \moodleform {
-//     public const MAX_CRITERIA = 5;
-
-//     public function definition() {
-//         $mform = $this->_form;
-//         $mform->addElement('hidden', 'id', $this->_customdata['cmid']);
-//         $mform->setType('id', PARAM_INT);
-
-//         for ($i = 1; $i <= self::MAX_CRITERIA; $i++) {
-//             $mform->addElement('textarea', "criteria$i", get_string("criteria{$i}", 'mod_speval'), ['rows' => 2, 'cols' => 80]);
-//             $mform->setType("criteria$i", PARAM_TEXT);
-//         }
-
-//         $this->add_action_buttons();
-//     }
-// }

@@ -7,6 +7,12 @@ or click the bookmark in our VM
 */
 
 
+$string['criteria1'] = 'Criteria 1';
+$string['criteria2'] = 'Criteria 2';
+$string['criteria3'] = 'Criteria 3';
+$string['criteria4'] = 'Criteria 4';
+$string['criteria5'] = 'Criteria 5';
+$string['criteriasaved'] = 'Criteria saved successfully.';
 $string['pluginname'] = 'Self and Peer Evaluation';
 $string['modulename'] = 'Self and Peer Evaluation';
 $string['spename'] = 'SPE Name';
@@ -27,6 +33,22 @@ $string['editgrade'] = 'Edit Grade';
 $string['gradesuccess'] = 'Grade updated successfully';
 $string['gradesnotcalculated'] = 'AI analysis is unavailable because grades are not calculated yet.';
 $string['progress'] = 'Progress of Submission';
+$string['mustselectgrouping'] = 'You must select a grouping';
+$string['mustselectassign'] = 'You must select an assignment';
+
+
+
+$string['other'] = 'Other';
+$string['selectcriteria'] = 'Select Criteria';
+
+$string['timeopen'] = 'Open time';
+$string['timeclose'] = 'Close time';
+$string['overduehandling'] = 'Late submission handling';
+$string['overdue_prevent'] = 'Prevent late submissions';
+$string['overdue_allow'] = 'Allow late submissions';
+$string['overdue_marklate'] = 'Accept but mark as late';
+
+$string['pluginadministration'] = "Admin";
 
 $string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put into this form will be kept strictly confidential by the unit coordinator.</div><div> </div>
 <div><strong>Contribution Ratings:</strong></div>
@@ -45,22 +67,3 @@ $string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put
 </div>
 <div><strong>Using the assessment scales above, evaluate your peers.</strong>
 </div>';
-
-$string['other'] = 'Other';
-$string['selectcriteria'] = 'Select Criteria';
-$string['criteria1'] = 'Criteria 1';
-$string['criteria2'] = 'Criteria 2';
-$string['criteria3'] = 'Criteria 3';
-$string['criteria4'] = 'Criteria 4';
-$string['criteria5'] = 'Criteria 5';
-$string['criteriasaved'] = 'Criteria saved successfully.';
-
-$string['timeopen'] = 'Open time';
-$string['timeclose'] = 'Close time';
-$string['overduehandling'] = 'Late submission handling';
-$string['overdue_prevent'] = 'Prevent late submissions';
-$string['overdue_allow'] = 'Allow late submissions';
-$string['overdue_marklate'] = 'Accept but mark as late';
-
-$string['pluginadministration'] = "Admin";
-
