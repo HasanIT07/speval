@@ -139,8 +139,8 @@ class renderer extends plugin_renderer_base {
         // Render more questions for self, fewer for peer
         $num_questions = $is_self ? $criteria_data->length : min($criteria_data->length, 3);
         for ($i=1; $i<=$num_questions; $i++){
-            $criteriatext = $criteria_data->{"criteria$i"};
-            $html .= $this->criteria_row("criteria$i", $criteriatext, $studentid);
+            $criteriatext = $criteria_data->{"criteria_text$i"};
+            $html .= $this->criteria_row("criteria_text$i", $criteriatext, $studentid);
         }
         // Comment field
         $html .= html_writer::start_div('form-row');

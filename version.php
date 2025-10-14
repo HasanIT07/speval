@@ -2,7 +2,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_speval';
-$plugin->version   = 2025100411;   // YYYYMMDDXX
+$plugin->version   = 2025101405;   // YYYYMMDDXX
 $plugin->requires  = 2021051700;   // Moodle 4.0 minimum
 $plugin->maturity  = MATURITY_ALPHA;
 $plugin->release   = 'v0.1';

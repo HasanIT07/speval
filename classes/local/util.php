@@ -65,6 +65,23 @@ class util {
     public static function get_criteria_data($speval) {
         /* 
         * Used by criteria.php 
+        * This function creates a criteriaObject that has the following properties:
+        * $criteriaObject->length
+        * $criteriaObject->custom_criteria1         // The text written by the teacher stored in $customfield in criteria_form.php
+        * $criteriaObject->custom_criteria2
+        * $criteriaObject->custom_criteria3
+        * $criteriaObject->custom_criteria4
+        * $criteriaObject->custom_criteria5
+        * $criteriaObject->predefined_criteria1     // The element chosen by the teacher stored in $fieldname in criteria_form.php 
+        * $criteriaObject->predefined_criteria2
+        * $criteriaObject->predefined_criteria3
+        * $criteriaObject->predefined_criteria4
+        * $criteriaObject->predefined_criteria5
+        * $criteriaObject->criteria_text1           // The final text shown to studends
+        * $criteriaObject->criteria_text2
+        * $criteriaObject->criteria_text3
+        * $criteriaObject->criteria_text4
+        * $criteriaObject->criteria_text5
         */
         global $DB;
 
@@ -75,7 +92,28 @@ class util {
         $i = 0;
         foreach ($records as $criteria) {
             $i++;
-            $criteriaObject->{"criteria{$i}"} = $criteria->questiontext ?? ''; // or ->description if that's the correct field
+
+            // If questiontext not empty in the DB, store this value in the property {"custom_criteria{$i}"}
+            if (!empty($criteria->questiontext)){
+                $criteriaObject->{"custom_criteria{$i}"} = $criteria->questiontext;
+                $criteriaObject->{"criteria_text{$i}"} = $criteria->questiontext;
+            
+
+            // If questionbankid not NULL and not 0 in the DB, store this value in the property {"predefined_criteria{$i}"}
+            } else if  (!empty($criteria->questionbankid)){
+                $criteriaObject->{"predefined_criteria{$i}"} = $criteria->questionbankid ?? 0;
+                $crit_text_record = $DB->get_record('speval_criteria_bank', ['id' => $criteria->questionbankid]);
+                $criteriaObject->{"criteria_text{$i}"} = $crit_text_record->questiontext;
+            }
+
+            
+        }
+
+        while ($i < self::MAX_CRITERIA){
+            $i++;
+            $criteriaObject->{"predefined_criteria{$i}"} = NULL;
+            $criteriaObject->{"custom_criteria{$i}"} = NULL;
+            $criteriaObject->{"criteria_text{$i}"} = "";
         }
 
         $criteriaObject->length = $i;
@@ -95,10 +133,18 @@ class util {
                 $newcriteria = new \stdClass();
                 $newcriteria->spevalid = $spevalid;
                 $newcriteria->sortorder = $i;
-                $newcriteria->questiontext = $data->{"criteria$i"};
+                $newcriteria->questiontext = $data->{"custom_criteria$i"};
+                $newcriteria->questionbankid = $data->{"predefined_criteria$i"};
                 $DB->insert_record('speval_criteria', $newcriteria);
             } else {
-                $existing->questiontext = $data->{"criteria$i"};
+                if ($data->{"predefined_criteria$i"} > 0){                                      // The predefined is not "other"
+                    $existing->questiontext   = NULL;
+                    $existing->questionbankid = $data->{"predefined_criteria$i"};
+                } else {                                                                        // The predefined is "other"
+                    $existing->questiontext   = $data->{"custom_criteria$i"};
+                    $existing->questionbankid = 0;
+                }
+
                 $DB->update_record('speval_criteria', $existing);
             }
         }

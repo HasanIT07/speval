@@ -30,10 +30,11 @@ $PAGE->activityheader->disable();                                               
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 // 5. Get criteria and set up criteria form
 $criteriaData = util::get_criteria_data($speval);
-// $mform = new criteria_form(null, ['cmid' => $id]);                              
-// $mform->set_data($criteriaData);                                                
 
-$mform = new criteria_form(null, ['cmid' => $id, 'criteriaData' => $criteriaData]);// From speval/classes/form/criteria_form.php 
+$mform = new criteria_form(
+    new moodle_url('/mod/speval/criteria.php', ['id' => $id]),
+    ['cmid' => $id, 'criteriaData' => $criteriaData]
+);
 $mform->set_data($criteriaData);                                                   // Pre-fill with existing data 
 
 
@@ -44,7 +45,7 @@ $mform->set_data($criteriaData);                                                
 // 6. Handle form submission / cancellation 
 if ($mform->is_cancelled()) {                                                   // Form was cancelled
     redirect(new moodle_url('/mod/speval/view.php', ['id' => $cm->id]));                    
-} else if ($data = $mform->get_data()) {                                        // Criteria were submitted
+} else if ($data = $mform->get_data()) {                                        // Criteria were submitted - changes are stored in $data
     util::save_criteria($speval->id, $data);
 
     redirect(new moodle_url('/mod/speval/view.php', ['id' => $cm->id]),

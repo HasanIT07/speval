@@ -40,7 +40,8 @@ require_capability('mod/speval:view', $context);                                
 // 4. Set up page
 $PAGE->set_cm($cm);                                                                 // Sets cm, course and page context
 $PAGE->set_url(new moodle_url('/mod/speval/view.php', ['id' => $cm->id]));          // Allows this view to have a public link
-$PAGE->requires->css(new moodle_url('/mod/speval/styles.css', ['v' => time()]));    // Links CSS Styles
+// $PAGE->requires->css(new moodle_url('/mod/speval/styles.css', ['v' => time()]));    // Links CSS Styles
+$PAGE->requires->css(new moodle_url('/mod/speval/styles.css'));    // Links CSS Styles
 $PAGE->activityheader->disable();
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
