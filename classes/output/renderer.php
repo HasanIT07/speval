@@ -42,19 +42,7 @@ class renderer extends plugin_renderer_base {
         
             $html .= html_writer::tag('h2', 'Self & Peer Evaluation');
             $html .= $this->output->box(format_module_intro('speval', $speval, $cm->id), 'generalbox');     
-            // $html .= html_writer::tag('p',
-            //     '<b>Please note:</b> Everything you put into this form will be kept strictly confidential by the unit coordinator.<br>' .
-            //     '<b>Contribution Ratings:</b><br>' .
-            //     '- Very Poor: Very poor, or even obstructive, contribution to the project process<br>' .
-            //     '- Poor: Poor contribution to the project process<br>' .
-            //     '- Average: Acceptable contribution to the project process<br>' .
-            //     '- Good: Good contribution to the project process<br>' .
-            //     '- Excellent: Excellent contribution to the project process<br><br>' .
-            //     '<b>Using the assessment scales above, fill out the following.</b>'
-            // );
-
-            $starturl = new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'start' => 1]);
-        
+            $starturl = new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'start' => 1]);        
             $html .= html_writer::start_tag('form', ['method' => 'get', 'action' => $starturl, 'style' => 'display:inline-block;']);
             $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cm->id]);
             $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'start', 'value' => 1]);
@@ -88,27 +76,29 @@ class renderer extends plugin_renderer_base {
             $html .= $this->peer_fields($speval, $student, $is_self);
         }
 
-        // Simple 1-minute countdown above the submit button
-        $html .= html_writer::div(
-            html_writer::tag('div',
-                '<span id="speval-timer-msg" style="color:#b00; font-weight:bold;">Please spend at least 1 minute on your evaluation before submitting. <span id="speval-timer">60</span> seconds left.</span>',
-                ['style' => 'margin-bottom:8px;']
-            ) .
-            html_writer::tag('button', 'Submit All Evaluations', [
-                'type' => 'submit',
-                'id' => 'speval-submit-btn',
-                'disabled' => 'disabled',
-                'style' => 'opacity:0.5;'
-            ]),
-            'form-actions'
-        );
+        // Lets temporarely comment this so testing can be done faster v
 
-        $html .= html_writer::end_tag('form');
-        $html .= html_writer::end_div();
+        // // Simple 1-minute countdown above the submit button
+        // $html .= html_writer::div(
+        //     html_writer::tag('div',
+        //         '<span id="speval-timer-msg" style="color:#b00; font-weight:bold;">Please spend at least 1 minute on your evaluation before submitting. <span id="speval-timer">60</span> seconds left.</span>',
+        //         ['style' => 'margin-bottom:8px;']
+        //     ) .
+        //     html_writer::tag('button', 'Submit All Evaluations', [
+        //         'type' => 'submit',
+        //         'id' => 'speval-submit-btn',
+        //         'disabled' => 'disabled',
+        //         'style' => 'opacity:0.5;'
+        //     ]),
+        //     'form-actions'
+        // );
 
-        // Simple JS timer (no localStorage)
+        // $html .= html_writer::end_tag('form');
+        // $html .= html_writer::end_div();
 
-        // Lets temporarely comment this so testing can be done faster
+        // // Simple JS timer (no localStorage)
+
+
         // $html .= "<script>
         // (function() {
         //     var btn = document.getElementById('speval-submit-btn');

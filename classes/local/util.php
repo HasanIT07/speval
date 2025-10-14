@@ -79,10 +79,6 @@ class util {
         }
 
         $criteriaObject->length = $i;
-        // // Ensure all 5 criteria fields exist (even if less than 5 records found)
-        // for (; $i <= 5; $i++) {
-        //     $criteriaObject->{"criteria{$i}"} = '...';
-        // }
 
         return $criteriaObject;
     }

@@ -45,6 +45,8 @@ $string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put
 <div><strong>Using the assessment scales above, evaluate your peers.</strong>
 </div>';
 
+$string['other'] = 'Other';
+$string['selectcriteria'] = 'Select Criteria';
 $string['criteria1'] = 'Criteria 1';
 $string['criteria2'] = 'Criteria 2';
 $string['criteria3'] = 'Criteria 3';

@@ -30,9 +30,16 @@ $PAGE->activityheader->disable();                                               
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 // 5. Get criteria and set up criteria form
 $criteriaData = util::get_criteria_data($speval);
-$mform = new criteria_form(null, ['cmid' => $id]);                              // From speval/classes/form/criteria_form.php 
-$mform->set_data($criteriaData);                                                // Pre-fill with existing data                       
-    
+// $mform = new criteria_form(null, ['cmid' => $id]);                              
+// $mform->set_data($criteriaData);                                                
+
+$mform = new criteria_form(null, ['cmid' => $id, 'criteriaData' => $criteriaData]);// From speval/classes/form/criteria_form.php 
+$mform->set_data($criteriaData);                                                   // Pre-fill with existing data 
+
+
+
+
+
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 // 6. Handle form submission / cancellation 
 if ($mform->is_cancelled()) {                                                   // Form was cancelled

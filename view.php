@@ -48,9 +48,7 @@ $PAGE->activityheader->disable();
 $renderer = $PAGE->get_renderer('mod_speval');                                      // From: speval\classes\ouput\renderer.php
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
-// 6. Page content:
-echo $OUTPUT->header();
-
+// 6. Determining bool values:
 $start = optional_param('start', 0, PARAM_INT);                                     // Determine whether the student has started the evaluation.
 
 $submission = $DB->record_exists('speval_eval', [                                   // Determine whether the student has submitted.
@@ -64,7 +62,9 @@ $studentHasGrade = $DB->record_exists('speval_grades', [                        
 ]);
 
 
-
+// -------------------------------------------------------------------------------------------------------------------------------------------------------
+// 6. Page Content
+echo $OUTPUT->header();
 
 if ($submission){
     if ($studentHasGrade) {
@@ -76,22 +76,18 @@ if ($submission){
 
 } else {
     
-    if (!$start) {
-        echo $renderer->student_landing_page($cm, $speval);                         // Show the landing page
-        echo $OUTPUT->footer();
-        exit;
-    }
-        
-    $studentsInGroup = util::get_students_in_same_groups($speval->id, $USER);
-    echo $renderer->evaluation_form($speval, $studentsInGroup);
-        
     // Handle form submission (all-in-one)
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {               // Check if there is a POST REQUEST ("Submit all evaluations" is clicked)
-        form_handler::process_submission($COURSE->id, $USER, $speval);                       // Inserts evaluation records into the database table mdl_speval_eval.
+        form_handler::process_submission($COURSE->id, $USER, $speval);              // Inserts evaluation records into the database table mdl_speval_eval.
         echo $renderer->submission_success_notification();
-    }
-
-    echo $OUTPUT->footer();
+    } else if (!$start) {
+        echo $renderer->student_landing_page($cm, $speval);                         // Show the landing page with instructions and start button
+    } else {        
+        $studentsInGroup = util::get_students_in_same_groups($speval->id, $USER);   
+        echo $renderer->evaluation_form($speval, $studentsInGroup);                 // Show the evaluation form with "Submit all evaluations" button
+    }   
 }
+
+echo $OUTPUT->footer();
 
 ?>
