@@ -97,8 +97,10 @@
             <FIELD NAME="groupid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Group id if applicable"/>
             <FIELD NAME="commentdiscrepancy" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if comment discrepancy is found"/>
             <FIELD NAME="markdiscrepancy" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if mark discrepancy is found"/>
+            <FIELD NAME="quicksubmissiondiscrepancy" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1 if quick submission discrepancy is found"/>
             <FIELD NAME="misbehaviorcategory" TYPE="int" LENGTH="2" SEQUENCE="false" NOTNULL="true" DEFAULT="1" COMMENT="1-6 category from AI module"/>
             <FIELD NAME="timecreated" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Timestamp when flag was created"/>
+
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

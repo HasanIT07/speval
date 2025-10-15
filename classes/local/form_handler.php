@@ -29,6 +29,22 @@ class form_handler {
         $c5 = optional_param_array('criteria_text5', [], PARAM_INT);
         $comments = optional_param_array('comment', [], PARAM_RAW);
 
+
+
+        // --- 1. Get Start Time and Calculate Quick Submission Flag ---
+        $starttime = required_param('starttime', PARAM_INT);
+        $endtime = time();
+        $duration_seconds = $endtime - $starttime;
+        $MIN_DURATION_SECONDS = 180; // 3 minutes
+
+        $quick_submission_flag = 0;
+        if ($duration_seconds < $MIN_DURATION_SECONDS) {
+            $quick_submission_flag = 1;
+        }
+        // ------------------------------------------------------------
+
+        // ... rest of the method (e.g., if (empty($c1)) { return false; })
+
         // Only process if at least criteria 1 was submitted.
         if (empty($c1)) {
             return false; // nothing to process
@@ -62,6 +78,41 @@ class form_handler {
             }
 
             $DB->insert_record('speval_eval', $record);
+
+            $group_info = self::get_peer_group_info($peerid, $speval->id); 
+            
+            $flag_record = (object)[
+                'userid' => $user->id,
+                'peerid' => $peerid,
+                'activityid' => $speval->id,
+                'grouping' => $group_info['groupingid'] ?? 0, // Use group info
+                'groupid' => $group_info['groupid'] ?? 0,    // Use group info
+                'commentdiscrepancy' => 0, 
+                'markdiscrepancy' => 0,    
+                'quicksubmissiondiscrepancy' => $quick_submission_flag, // <--- Set the calculated flag
+                'misbehaviorcategory' => 1, // Default category
+                'timecreated' => $endtime
+            ];
+
+            // Check if a flag record already exists 
+            $existing_flag = $DB->get_record('speval_flag_individual', [
+                'userid' => $user->id,
+                'peerid' => $peerid,
+                'activityid' => $speval->id
+            ]);
+
+            if ($existing_flag) {
+                // If it exists, update only the quicksubmissiondiscrepancy field
+                $update_data = (object)[
+                    'id' => $existing_flag->id, 
+                    'quicksubmissiondiscrepancy' => $quick_submission_flag
+                ];
+                $DB->update_record('speval_flag_individual', $update_data);
+            } else {
+                // Insert a new record
+                $DB->insert_record('speval_flag_individual', $flag_record);
+            }
+
         }
 
         // Trigger AI analysis after storing evaluations
@@ -93,5 +144,34 @@ class form_handler {
                 debugging("Synchronous AI analysis also failed: " . $ai_error->getMessage(), DEBUG_DEVELOPER);
             }
         }
+    }
+    private static function get_peer_group_info($peerid, $activityid) {
+        global $DB;
+        
+        // Get the course from the activity
+        $speval = $DB->get_record('speval', ['id' => $activityid]);
+        if (!$speval) {
+            return ['groupid' => 0, 'groupingid' => 0];
+        }
+        
+        $groups = groups_get_user_groups($speval->course, $peerid);
+        
+        $groupid = 0;
+        $groupingid = 0;
+        $arraykey = 0;
+        if (!empty($groups)) {
+            foreach ($groups as $grouping => $group_list) {
+                if (!empty($group_list)) {
+                    $groupid = reset($group_list); 
+                    $groupingid = $grouping;
+                    break;
+                }
+            }
+        }
+        
+        return [
+            'groupid' => $groupid,
+            'groupingid' => $groupingid
+        ];
     }
 }
