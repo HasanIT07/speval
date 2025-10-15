@@ -56,12 +56,41 @@ foreach ($groups as $group) {
             'userid' => $student->id
         ]);
 
+        $status_html = $student->firstname . ' ' . $student->lastname . ' - ';
+        $delete_button = '';
+
         if ($submissions) {
             $submitted++;
-            $status_list[] = $student->firstname . ' ' . $student->lastname . ' - <span style="color:green;">Submitted</span>';
+            $status_html .= '<span style="color:green;">Submitted</span>';
+
+            // --- ADD DELETE BUTTON LOGIC HERE ---
+            // We use Moodle's sesskey for security and pass the module ID and the user ID
+            $delete_url = new moodle_url(
+                '/mod/speval/delete_submission.php', 
+                [
+                    'id'       => $id,         // Course Module ID
+                    'userid'   => $student->id,
+                    'sesskey'  => sesskey(),
+                ]
+            );
+
+            // Create a small, danger-style button using html_writer
+            $delete_button = html_writer::link(
+                $delete_url, 
+                get_string('delete', 'moodle'), // Use Moodle's standard 'Delete' string
+                [
+                    'class'   => 'btn btn-danger btn-sm ml-2', 
+                    'onclick' => 'return confirm("' . get_string('Are you sure you want to delete this submission?', 'moodle') . '");' 
+                ]
+            );
+            // Ensure the button is floated right or in a way that separates it visually
+            $status_html .= $delete_button;
+
         } else {
-            $status_list[] = $student->firstname . ' ' . $student->lastname . ' - <span style="color:red;">Not Submitted</span>';
+            $status_html .= '<span style="color:red;">Not Submitted</span>';
         }
+        
+        $status_list[] = $status_html;
     }
 
     $percent = round(($submitted / $total) * 100);

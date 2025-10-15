@@ -19,7 +19,7 @@ class grade_service {
 
     // 2. Aggregate grades per student (peerid)
     foreach ($submissions as $s) {
-        $studentid = $s->peerid;
+        $studentid = $s->userid;
 
         // Skip if already processed
         if (isset($processed_students[$studentid])) {

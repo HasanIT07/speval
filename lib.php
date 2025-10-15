@@ -33,7 +33,6 @@ function speval_delete_instance($id) {
     $DB->delete_records('speval', ['id' => $id]);
     $DB->delete_records('speval_eval', ['activityid' => $id]);
     $DB->delete_records('speval_grades', ['activityid' => $id]);
-    $DB->delete_records('speval_flag', ['activityid' => $id]);
     $DB->delete_records('speval_flag_individual', ['activityid' => $id]);
 
     return true;
