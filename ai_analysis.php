@@ -26,11 +26,11 @@ if ($flags) {
     foreach ($flags as $flag) {
         $group_name = $flag->groupid ? groups_get_group_name($flag->groupid) : '-';
         $evaluator = $DB->get_field('user', $DB->sql_fullname(), ['id' => $flag->userid]);
-        $peer = $DB->get_field('user', $DB->sql_fullname(), ['id' => $flag->peer]);
+        $peer = $DB->get_field('user', $DB->sql_fullname(), ['id' => $flag->peerid]);
 
         $table->data[] = [
             $evaluator ?: $flag->userid,
-            $peer ?: $flag->peer,
+            $peer ?: $flag->peerid,
             $group_name,
             (int)$flag->misbehaviorcategory,
             ((int)$flag->markdiscrepancy) ? 'Yes' : 'No',
@@ -40,7 +40,7 @@ if ($flags) {
     
     echo html_writer::table($table);
 } else {
-    echo $OUTPUT->notification('No AI analysis results available. Run grade calculation to trigger AI analysis.', 'notifyinfo');
+    echo $OUTPUT->notification('No AI analysis results available.', 'notifyinfo');
 }
 
 echo $OUTPUT->footer();

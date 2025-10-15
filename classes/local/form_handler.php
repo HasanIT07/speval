@@ -22,11 +22,11 @@ class form_handler {
         global $DB, $CFG;
 
         // Safely get arrays, if not present, initialize as empty array
-        $c1 = optional_param_array('criteria1', [], PARAM_INT);
-        $c2 = optional_param_array('criteria2', [], PARAM_INT);
-        $c3 = optional_param_array('criteria3', [], PARAM_INT);
-        $c4 = optional_param_array('criteria4', [], PARAM_INT);
-        $c5 = optional_param_array('criteria5', [], PARAM_INT);
+        $c1 = optional_param_array('criteria_text1', [], PARAM_INT);
+        $c2 = optional_param_array('criteria_text2', [], PARAM_INT);
+        $c3 = optional_param_array('criteria_text3', [], PARAM_INT);
+        $c4 = optional_param_array('criteria_text4', [], PARAM_INT);
+        $c5 = optional_param_array('criteria_text5', [], PARAM_INT);
         $comments = optional_param_array('comment', [], PARAM_RAW);
 
         // Only process if at least criteria 1 was submitted.
@@ -49,11 +49,11 @@ class form_handler {
         // Insert new evaluations
         foreach ($peerids as $peerid) {
             $record = (object)[
-                'unitid'      => $courseid,
                 'activityid'  => $speval->id,
                 'userid'      => $user->id,
                 'peerid'      => $peerid,
-                'comment'     => $comments[$peerid] ?? '',
+                'comment1'    => $comments[$peerid] ?? '',
+                'comment2'    => '', // Second comment field (can be used for additional comments)
                 'timecreated' => time(),
             ];
 
@@ -64,6 +64,34 @@ class form_handler {
             $DB->insert_record('speval_eval', $record);
         }
 
+        // Trigger AI analysis after storing evaluations
+        self::trigger_ai_analysis($speval->id);
+
         // Grade update logic could go in a separate grade_service class.
+    }
+
+    /**
+     * Trigger AI analysis for new submissions
+     * @param int $activityid
+     */
+    private static function trigger_ai_analysis($activityid) {
+        try {
+            // Try to queue AI analysis task
+            $task = new \mod_speval\task\ai_analysis_task();
+            $task->set_custom_data(['activityid' => $activityid]);
+            \core\task\manager::queue_adhoc_task($task);
+            debugging("AI analysis task queued successfully for activity {$activityid}", DEBUG_DEVELOPER);
+        } catch (Exception $e) {
+            debugging("Failed to queue AI analysis task: " . $e->getMessage(), DEBUG_DEVELOPER);
+            
+            // Fallback: Run AI analysis directly (synchronous)
+            debugging("Running AI analysis synchronously as fallback", DEBUG_DEVELOPER);
+            try {
+                $results = \mod_speval\local\ai_service::analyze_evaluations($activityid);
+                debugging("AI analysis completed synchronously. Processed " . count($results) . " results.", DEBUG_DEVELOPER);
+            } catch (Exception $ai_error) {
+                debugging("Synchronous AI analysis also failed: " . $ai_error->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
     }
 }

@@ -76,47 +76,47 @@ class renderer extends plugin_renderer_base {
             $html .= $this->peer_fields($speval, $student, $is_self);
         }
 
-        // Lets temporarely comment this so testing can be done faster v
-
-        // // Simple 1-minute countdown above the submit button
-        // $html .= html_writer::div(
-        //     html_writer::tag('div',
-        //         '<span id="speval-timer-msg" style="color:#b00; font-weight:bold;">Please spend at least 1 minute on your evaluation before submitting. <span id="speval-timer">60</span> seconds left.</span>',
-        //         ['style' => 'margin-bottom:8px;']
-        //     ) .
-        //     html_writer::tag('button', 'Submit All Evaluations', [
-        //         'type' => 'submit',
-        //         'id' => 'speval-submit-btn',
-        //         'disabled' => 'disabled',
-        //         'style' => 'opacity:0.5;'
-        //     ]),
-        //     'form-actions'
-        // );
-
-        // $html .= html_writer::end_tag('form');
-        // $html .= html_writer::end_div();
-
-        // // Simple JS timer (no localStorage)
 
 
-        // $html .= "<script>
-        // (function() {
-        //     var btn = document.getElementById('speval-submit-btn');
-        //     var timerSpan = document.getElementById('speval-timer');
-        //     var msg = document.getElementById('speval-timer-msg');
-        //     var seconds = 60;
-        //     var interval = setInterval(function() {
-        //         seconds--;
-        //         timerSpan.textContent = seconds;
-        //         if (seconds <= 0) {
-        //             clearInterval(interval);
-        //             btn.disabled = false;
-        //             btn.style.opacity = 1;
-        //             msg.textContent = '';
-        //         }
-        //     }, 1000);
-        // })();
-        // </script>";
+        // Simple 1-minute countdown above the submit button
+        $html .= html_writer::div(
+            html_writer::tag('div',
+                '<span id="speval-timer-msg" style="color:#b00; font-weight:bold;">Please spend at least 1 minute on your evaluation before submitting. <span id="speval-timer">60</span> seconds left.</span>',
+                ['style' => 'margin-bottom:8px;']
+            ) .
+            html_writer::tag('button', 'Submit All Evaluations', [
+                'type' => 'submit',
+                'id' => 'speval-submit-btn',
+                'disabled' => 'disabled',
+                'style' => 'opacity:0.5;'
+            ]),
+            'form-actions'
+        );
+
+        $html .= html_writer::end_tag('form');
+        $html .= html_writer::end_div();
+
+        // Simple JS timer (no localStorage)
+
+
+        $html .= "<script>
+        (function() {
+            var btn = document.getElementById('speval-submit-btn');
+            var timerSpan = document.getElementById('speval-timer');
+            var msg = document.getElementById('speval-timer-msg');
+            var seconds = 60;
+            var interval = setInterval(function() {
+                seconds--;
+                timerSpan.textContent = seconds;
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    btn.disabled = false;
+                    btn.style.opacity = 1;
+                    msg.textContent = '';
+                }
+            }, 1000);
+        })();
+        </script>";
 
         return $html;
     }

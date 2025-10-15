@@ -91,7 +91,7 @@
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
             <FIELD NAME="userid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Evaluator user id"/>
-            <FIELD NAME="peer" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Peer being evaluated"/>
+            <FIELD NAME="peerid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Peer being evaluated"/>
             <FIELD NAME="activityid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="SPEval activity instance"/>
             <FIELD NAME="grouping" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Grouping id if applicable"/>
             <FIELD NAME="groupid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Group id if applicable"/>

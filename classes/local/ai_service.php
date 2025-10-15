@@ -73,66 +73,60 @@ class ai_service {
         return $data;
     }
     
-    /**
-     * Call the Python AI module
-     * @param array $data
-     * @return array|null
-     */
-    private static function call_ai_module($data) {
-        global $CFG;
+   /**
+ * Call the AI module via HTTP API
+ * @param array $data
+ * @return array|null
+ */
+private static function call_ai_module($data) {
+    // Get API URL from config or use default
+    $api_url = get_config('mod_speval', 'ai_api_url');
+    if (empty($api_url)) {
+        $api_url = 'http://localhost:8000/analyze';
+    }
+    
+    try {
+        // Prepare JSON data
+        $json_data = json_encode($data);
         
-        // Get AI module path from config or use default
-        $ai_module_path = get_config('mod_speval', 'ai_module_path');
-        if (empty($ai_module_path)) {
-            // Default path - adjust this to your actual path
-            $ai_module_path = $CFG->dirroot . '/mod/speval/ai_module.py';
-        }
+        // Set up HTTP context
+        $options = [
+            'http' => [
+                'header' => [
+                    "Content-Type: application/json",
+                    "Content-Length: " . strlen($json_data)
+                ],
+                'method' => 'POST',
+                'content' => $json_data,
+                'timeout' => 30  // 30 second timeout
+            ]
+        ];
         
-        if (!file_exists($ai_module_path)) {
-            debugging('AI module not found at: ' . $ai_module_path, DEBUG_DEVELOPER);
+        $context = stream_context_create($options);
+        
+        // Make the API call
+        $result = file_get_contents($api_url, false, $context);
+        
+        if ($result === false) {
+            debugging('Failed to call AI API at: ' . $api_url, DEBUG_DEVELOPER);
             return null;
         }
         
-        try {
-            // Prepare JSON input
-            $json_data = json_encode($data);
-            
-            // Execute Python script
-            $command = "python3 " . escapeshellarg($ai_module_path) . " --json";
-            $descriptorspec = [
-                0 => ["pipe", "r"],  // stdin
-                1 => ["pipe", "w"],  // stdout
-                2 => ["pipe", "w"]   // stderr
-            ];
-            
-            $process = proc_open($command, $descriptorspec, $pipes);
-            
-            if (is_resource($process)) {
-                // Write input data
-                fwrite($pipes[0], $json_data);
-                fclose($pipes[0]);
-                
-                // Read output
-                $output = stream_get_contents($pipes[1]);
-                $error = stream_get_contents($pipes[2]);
-                fclose($pipes[1]);
-                fclose($pipes[2]);
-                
-                $return_value = proc_close($process);
-                
-                if ($return_value === 0 && $output) {
-                    return json_decode($output, true);
-                } else {
-                    debugging('AI module error: ' . $error, DEBUG_DEVELOPER);
-                    return null;
-                }
-            }
-        } catch (Exception $e) {
-            debugging('Error calling AI module: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        // Parse the response
+        $response = json_decode($result, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            debugging('Invalid JSON response from AI API: ' . $result, DEBUG_DEVELOPER);
+            return null;
         }
         
+        return $response;
+        
+    } catch (Exception $e) {
+        debugging('Error calling AI API: ' . $e->getMessage(), DEBUG_DEVELOPER);
         return null;
     }
+}
     
     /**
      * Store AI analysis results in database
