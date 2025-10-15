@@ -137,7 +137,7 @@ class renderer extends plugin_renderer_base {
         $html .= html_writer::start_tag('fieldset', ['class' => 'speval-peer']);
         $html .= html_writer::tag('legend', $is_self ? 'Self Evaluation' : s(fullname($student)), ['class' => 'peer-name']);
         // Render more questions for self, fewer for peer ➜ !The number of scale criteria should remain the same. What needs to change is the number of comments  
-        $num_questions = $is_self ? $criteria_data->length : min($criteria_data->length, 5); // I am changing this to 5 temporarely but this num_questions might not be needed
+        $num_questions = $is_self ? $criteria_data->n_criteria : min($criteria_data->n_criteria, 5); // I am changing this to 5 temporarely but this num_questions might not be needed
         for ($i=1; $i<=$num_questions; $i++){
             $criteriatext = $criteria_data->{"criteria_text$i"};
             $html .= $this->criteria_row("criteria_text$i", $criteriatext, $studentid);

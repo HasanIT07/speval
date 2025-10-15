@@ -14,13 +14,15 @@ class criteria_form extends \moodleform {
 
         // Get existing criteria from customdata -
         $criteriaData = $this->_customdata['criteriaData'] ?? null;             // criteriaData is obtained from section 5 of criteria.php
-        $length = $criteriaData->length ?? 1;                                   
+        $n_criteria = $criteriaData->n_criteria;                                   
+        $n_openquestion = $criteriaData->n_openquestion;                                   
 
         // Get options from the bank once
         $bankoptions = $this->get_criteria_bank_options($COURSE);
 
+        // ----------------------------------------------------------------------------------------------------------------------------------
         // Loop through criteria
-        for ($i = 1; $i <= $length; $i++) {
+        for ($i = 1; $i <= $n_criteria; $i++) {
             $fieldname = "predefined_criteria{$i}";
             $customfield = "custom_criteria{$i}";
 
@@ -41,9 +43,37 @@ class criteria_form extends \moodleform {
                 $mform->setDefault($customfield, $criteriaData->{$customfield});
             }
 
-            $mform->addElement('html', '<hr style="width:80%; margin: 20px 0; border-top: 1px solid #4c41adff;">');
+            $mform->addElement('html', '<hr style="width:100%; margin: 20px 0; border-top: 1px solid #4c41adff;">');
         }
         
+
+        // ----------------------------------------------------------------------------------------------------------------------------------
+        // Loop through open questions
+        for ($j = 1; $j <= $n_openquestion; $j++) {
+            $oq_fieldname = "predefined_oq{$j}";
+            $oq_customfield = "custom_oq{$j}";
+
+            // Dropdown from bank
+            $mform->addElement('select', $oq_fieldname, "open question {$j}", $bankoptions);
+            
+            // Custom criteria
+            $mform->addElement('text', $oq_customfield, "   ", ['size' => 120]);
+            $mform->setType($oq_customfield, PARAM_TEXT);
+            $mform->hideIf($oq_customfield, $oq_fieldname, 'neq', 0);
+
+            // Pre-fill values if available
+            if (!empty($criteriaData->{$oq_fieldname})) {
+                $mform->setDefault($oq_fieldname, $criteriaData->{$oq_fieldname});
+            }
+            
+            if (!empty($criteriaData->$oq_customfield)) {
+                $mform->setDefault($oq_customfield, $criteriaData->{$oq_customfield});
+            }
+
+            $mform->addElement('html', '<hr style="width:100%; margin: 20px 0; border-top: 1px solid #4c41adff;">');
+        }
+
+
         // Submit buttons
         $this->add_action_buttons(true, get_string('savechanges'));
     }
@@ -53,9 +83,9 @@ class criteria_form extends \moodleform {
         $errors = parent::validation($data, $files);
 
         $seen = [];
-        $length = $this->_customdata['criteriaData']->length ?? 1;
+        $n_criteria = $this->_customdata['criteriaData']->n_criteria ?? 1;
 
-        for ($i = 1; $i <= $length; $i++) {
+        for ($i = 1; $i <= $n_criteria; $i++) {
             $fieldname = "predefined_criteria{$i}";
             $value = $data[$fieldname] ?? 0;
 
@@ -70,13 +100,6 @@ class criteria_form extends \moodleform {
 
         return $errors;
     }
-
-
-
-
-
-
-
 
 
     

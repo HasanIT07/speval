@@ -11,6 +11,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class util {
     public const MAX_CRITERIA = 5;
+    public const MAX_OPENQUESTION = 2;
 
     public static function get_students_in_same_groups($spevalid, \stdClass $user) {
         /* 
@@ -66,7 +67,7 @@ class util {
         /* 
         * Used by criteria.php 
         * This function creates a criteriaObject that has the following properties:
-        * $criteriaObject->length
+        * $criteriaObject->n_criteria
         * $criteriaObject->custom_criteria1         // The text written by the teacher stored in $customfield in criteria_form.php
         * $criteriaObject->custom_criteria2
         * $criteriaObject->custom_criteria3
@@ -82,15 +83,23 @@ class util {
         * $criteriaObject->criteria_text3
         * $criteriaObject->criteria_text4
         * $criteriaObject->criteria_text5
+        * $criteriaObject->custom_openquestion1
+        * $criteriaObject->custom_openquestion2
+        * $criteriaObject->predefined_openquestion1
+        * $criteriaObject->predefined_openquestion2
+        * $criteriaObject->openquestion_text1            // The final text for the openquestion
+        * $criteriaObject->openquestion_text2           // The final text for the second openquestion (meant to be only for self evaluation)
         */
         global $DB;
 
-        $records = $DB->get_records('speval_criteria', ['spevalid' => $speval->id], 'sortorder ASC');
+        // -------------------------------------------------------------------------------------------------------------------------------
+        // Closed criteria questions
+        $criteriaRecords = $DB->get_records('speval_criteria', ['spevalid' => $speval->id], 'sortorder ASC');
 
         $criteriaObject = new \stdClass();
 
         $i = 0;
-        foreach ($records as $criteria) {
+        foreach ($criteriaRecords as $criteria) {
             $i++;
 
             // If questiontext not empty in the DB, store this value in the property {"custom_criteria{$i}"}
@@ -120,10 +129,42 @@ class util {
             $criteriaObject->{"criteria_text{$i}"} = "";
         }
 
-        $criteriaObject->length = $i;
+        $criteriaObject->n_criteria = $i;
+
+        // -------------------------------------------------------------------------------------------------------------------------------
+        // Open questions
+        $openquestionsRecords = $DB->get_records('speval_openquestion', ['spevalid' => $speval->id], 'sortorder ASC');
+
+        $j = 0;
+        foreach ($openquestionsRecords as $question) {
+            $j++;
+
+            // If questiontext not empty in the DB, store this value in the property {"openquestion{$i}"}
+            if (!empty($question->questiontext)){
+                $criteriaObject->{"custom_openquestion{$j}"} = $question->questiontext;
+                $criteriaObject->{"openquestion_text{$j}"} = $question->questiontext;
+            
+
+            // If questionbankid not NULL and not 0 in the DB, store this value in the property {"predefined_criteria{$i}"}
+            } else if  (!empty($question->questionbankid)){
+                $criteriaObject->{"predefined_openquestion{$j}"} = $question->questionbankid ?? 0;
+                $oq_text_record = $DB->get_record('speval_criteria_bank', ['id' => $question->questionbankid]);
+                $criteriaObject->{"openquestion_text{$j}"} = $oq_text_record->questiontext;
+            }
+
+        }
+    
+        while ($j < self::MAX_OPENQUESTION){
+            $j++;
+            $criteriaObject->{"predefined_openquestion{$j}"} = NULL;
+            $criteriaObject->{"custom_openquestion{$j}"} = NULL;
+            $criteriaObject->{"openquestion_text{$j}"} = "";
+        }
+
+        $criteriaObject->n_openquestion = $j;
 
         return $criteriaObject;
-    }
+}
 
 
     public static function save_criteria($spevalid, $data) {
@@ -152,8 +193,29 @@ class util {
                 $DB->update_record('speval_criteria', $existing);
             }
         }
+
+        for ($i = 1; $i <= self::MAX_OPENQUESTION; $i++) {
+            $existing = $DB->get_record('speval_openquestion', ['spevalid' => $spevalid, 'sortorder' => $i]);
+            if (!$existing) {
+                $newoq = new \stdClass();
+                $newoq->spevalid = $spevalid;
+                $newoq->sortorder = $i;
+                $newoq->questiontext = $data->{"custom_oq$i"}; //  !!!!! If not set at all (a predefined opption is used) in a new activity this throws error
+                //Warning: Undefined property: stdClass::$custom_oq1 in C:\xampp\htdocs\moodle\mod\speval\classes\local\util.php on line 203
+                //Warning: Undefined property: stdClass::$custom_oq2 in C:\xampp\htdocs\moodle\mod\speval\classes\local\util.php on line 203
+                $newoq->questionbankid = $data->{"predefined_oq$i"};
+                $DB->insert_record('speval_openquestion', $newoq);
+            } else {
+                if ($data->{"predefined_oq$i"} > 0){                                      // The predefined is not "other"
+                    $existing->questiontext   = NULL;
+                    $existing->questionbankid = $data->{"predefined_oq$i"};
+                } else {                                                                        // The predefined is "other"
+                    $existing->questiontext   = $data->{"custom_oq$i"};
+                    $existing->questionbankid = 0;
+                }
+
+                $DB->update_record('speval_openquestion', $existing);
+            }
+        }
     }
-
-
-
 }

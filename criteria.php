@@ -38,9 +38,6 @@ $mform = new criteria_form(
 $mform->set_data($criteriaData);                                                   // Pre-fill with existing data 
 
 
-
-
-
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 // 6. Handle form submission / cancellation 
 if ($mform->is_cancelled()) {                                                   // Form was cancelled

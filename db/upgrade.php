@@ -6,20 +6,28 @@ function xmldb_speval_upgrade($oldversion) {
 
     $dbman = $DB->get_manager();
 
-    if ($oldversion < 2025101405) {
+    if ($oldversion < 2025101406) {
 
-    // Define table
-    $table = new xmldb_table('speval_criteria_bank');
+    // Define table speval_openquestion to be created.
+    $table = new xmldb_table('speval_openquestion');
 
-    // Define field to be dropped
-    $field = new xmldb_field('curseid');
+    // Add fields.
+    $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+    $table->add_field('spevalid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+    $table->add_field('sortorder', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
+    $table->add_field('questiontext', XMLDB_TYPE_TEXT, null, null, null, null, null);
+    $table->add_field('questionbankid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
 
-    // Conditionally drop the field if it exists
-    if ($dbman->field_exists($table, $field)) {
-        $dbman->drop_field($table, $field);
+    // Add keys.
+    $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+    $table->add_key('spevalid_fk', XMLDB_KEY_FOREIGN, ['spevalid'], 'speval', ['id']);
+    $table->add_key('questionbankid_fk', XMLDB_KEY_FOREIGN, ['questionbankid'], 'speval_criteria_bank', ['id']);
+
+    // Conditionally create the table.
+    if (!$dbman->table_exists($table)) {
+        $dbman->create_table($table);
     }
-
-        upgrade_mod_savepoint(true, 2025101405, 'speval');
+        upgrade_mod_savepoint(true, 2025101406, 'speval');
     }
 
     return true;

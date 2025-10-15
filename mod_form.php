@@ -108,6 +108,7 @@ class mod_speval_mod_form extends moodleform_mod {
 	public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
+		// Obtain fields from the form
     	$linkoption = $data['linkoption'];
     	$grouping = $data['grouping'];
 		$linkedassign = $data['linkedassign'];
