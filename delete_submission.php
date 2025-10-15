@@ -26,11 +26,11 @@ $deleted = $DB->delete_records('speval_eval', [
 // 5. Redirect and notify
 if ($deleted) {
     // Notify success
-    $message = get_string('Submission deleted successfully.', 'speval', $userid); // Define this string in lang file
+    $message = get_string('deletedsub', 'speval', $userid); // Define this string in lang file
     \core\notification::success($message);
 } else {
     // Notify failure (e.g., submission not found)
-    \core\notification::error(get_string('Submission not found error.', 'speval')); // Define this string in lang file
+    \core\notification::error(get_string('notfoundsub', 'speval')); // Define this string in lang file
 }
 
 // Redirect back to the progress page

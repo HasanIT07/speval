@@ -80,7 +80,7 @@ foreach ($groups as $group) {
                 get_string('delete', 'moodle'), // Use Moodle's standard 'Delete' string
                 [
                     'class'   => 'btn btn-danger btn-sm ml-2', 
-                    'onclick' => 'return confirm("' . get_string('Are you sure you want to delete this submission?', 'moodle') . '");' 
+                    'onclick' => 'return confirm("' . get_string('deleteconfirm', 'moodle') . '");' 
                 ]
             );
             // Ensure the button is floated right or in a way that separates it visually

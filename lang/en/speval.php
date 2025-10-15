@@ -50,6 +50,12 @@ $string['overdue_marklate'] = 'Accept but mark as late';
 
 $string['pluginadministration'] = "Admin";
 
+$string['deleteconfirm'] = 'Are you sure you want to delete this submission?';
+
+$string['deletedsub'] = 'Submission deleted sucessfully.';
+
+
+
 $string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put into this form will be kept strictly confidential by the unit coordinator.</div><div> </div>
 <div><strong>Contribution Ratings:</strong></div>
 <div> </div>
