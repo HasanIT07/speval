@@ -82,3 +82,20 @@ $string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put
 </div>
 <div><strong>Using the assessment scales above, evaluate your peers.</strong>
 </div>';
+
+$string['nogroup'] = 'No group';
+$string['finalgrade'] = 'Final grade';
+$string['markdiscrepancy'] = 'Mark discrepancy';
+$string['commentdiscrepancy'] = 'Comment discrepancy';
+$string['quicksubmissiondiscrepancy'] = 'Quick submission discrepancy';
+$string['misbehaviour'] = 'Misbehaviour';
+$string['noresults'] = 'No results to display.';
+$string['nousersfound'] = 'No enrolled users found.';
+$string['id'] = 'ID';
+// Misbehaviour labels (1..6)
+$string['misbehaviour_1'] = 'Normal or positive teamwork behaviour';
+$string['misbehaviour_2'] = 'Aggressive or hostile behaviour';
+$string['misbehaviour_3'] = 'Uncooperative or ignoring messages behaviour';
+$string['misbehaviour_4'] = 'Irresponsible or unreliable behaviour';
+$string['misbehaviour_5'] = 'Harassment or inappropriate comments behaviour';
+$string['misbehaviour_6'] = 'Dishonest or plagiarism behaviour';

@@ -11,7 +11,25 @@ class grade_service {
     $submissions = $DB->get_records('speval_eval', ['activityid' => $cm->instance]);
 
     if (!$submissions) {
-        debugging('No submissions found for activityid '.$cm->instance, DEBUG_DEVELOPER);
+        // Ensure a grades row exists for every enrolled student with 0s
+        error_log('mod_speval: No submissions found for activityid '.$cm->instance);
+
+        $enrolled_students = $DB->get_records_sql("
+            SELECT u.id
+            FROM {user} u
+            JOIN {user_enrolments} ue ON ue.userid = u.id
+            JOIN {enrol} e ON e.id = ue.enrolid
+            WHERE e.courseid = :courseid
+        ", ['courseid' => $courseid]);
+
+        foreach ($enrolled_students as $student) {
+            $DB->delete_records('speval_grades', ['activityid' => $cm->instance, 'userid' => $student->id]);
+            $DB->insert_record('speval_grades', [
+                'userid' => $student->id, 'activityid' => $cm->instance,
+                'criteria1' => 0, 'criteria2' => 0, 'criteria3' => 0, 'criteria4' => 0, 'criteria5' => 0,
+                'finalgrade' => 0
+            ]);
+        }
         return;
     }
 
@@ -115,9 +133,17 @@ class grade_service {
         // Calculate grades first
         self::calculate_spe_grade($cm, $courseid);
         
-        // Run AI analysis
-        $ai_results = \mod_speval\local\ai_service::analyze_evaluations($cm->instance);
-        
+       // Run AI analysis only if grades exist for this activity
+        $ai_results = [];
+        global $DB;
+        if ($DB->record_exists('speval_grades', ['activityid' => $cm->instance])) {
+            try {
+                $ai_results = \mod_speval\local\ai_service::analyze_evaluations($cm->instance);
+            } catch (\moodle_exception $e) {
+                error_log('mod_speval: AI analysis skipped: ' . $e->getMessage());
+                $ai_results = [];
+            }
+        }
         return $ai_results;
     }
 

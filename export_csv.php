@@ -13,6 +13,8 @@ if ($table === 'speval_eval') {
     $records = $DB->get_records('speval_eval', ['activityid' => $cm->instance]);
 } else if ($table === 'speval_grades') {
     $records = $DB->get_records('speval_grades', ['activityid' => $cm->instance]);
+} else if ($table === 'speval_flag_individual') {
+    $records = $DB->get_records('speval_flag_individual', ['activityid' => $cm->instance]);
 } else {
     die('Invalid table specified.');
 }
@@ -74,6 +76,38 @@ if ($records) {
                 $rec->comment1,
                 $rec->comment2,
                 date('Y-m-d H:i:s', $rec->timecreated)
+            ];
+            fputcsv($out, $row);
+        }
+    } else if ($table === 'speval_flag_individual') {
+        // CSV header for individual flags
+        $header = ['Evaluator Name', 'Peer Name', 'activityid', 'grouping', 'groupid', 'commentdiscrepancy', 'markdiscrepancy', 'quicksubmissiondiscrepancy', 'misbehaviorcategory', 'timecreated'];
+        fputcsv($out, $header);
+
+        // Fetch users for evaluator and peer
+        $userids = [];
+        foreach ($records as $rec) {
+            $userids[] = $rec->userid;
+            $userids[] = $rec->peerid;
+        }
+        $userids = array_unique($userids);
+        $users = $DB->get_records_list('user', 'id', $userids);
+
+        foreach ($records as $rec) {
+            $evaluator = isset($users[$rec->userid]) ? ($users[$rec->userid]->firstname . ' ' . $users[$rec->userid]->lastname) : $rec->userid;
+            $peer = isset($users[$rec->peerid]) ? ($users[$rec->peerid]->firstname . ' ' . $users[$rec->peerid]->lastname) : $rec->peerid;
+            $timeformatted = (isset($rec->timecreated) && !empty($rec->timecreated)) ? date('Y-m-d H:i:s', (int)$rec->timecreated) : '';
+            $row = [
+                $evaluator,
+                $peer,
+                $rec->activityid,
+                (int)$rec->grouping,
+                (int)$rec->groupid,
+                (int)$rec->commentdiscrepancy,
+                (int)$rec->markdiscrepancy,
+                (int)$rec->quicksubmissiondiscrepancy,
+                (int)$rec->misbehaviorcategory,
+                $timeformatted
             ];
             fputcsv($out, $row);
         }

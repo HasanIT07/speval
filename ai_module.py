@@ -169,14 +169,8 @@ def analyze_single_evaluation(eval_data: Dict) -> Dict:
     
     combined_comment = ' '.join(comments)
     
-    # Calculate average mark, prefer provided finalgrade if available
-    if 'finalgrade' in eval_data and eval_data['finalgrade'] is not None:
-        try:
-            avg_mark_val = float(eval_data['finalgrade'])
-        except Exception:
-            avg_mark_val = avg_mark(eval_data)
-    else:
-        avg_mark_val = avg_mark(eval_data)
+    # Calculate average mark from criteria only (ignore any provided finalgrade)
+    avg_mark_val = avg_mark(eval_data)
     
     # Analyze misbehaviour
     misbehaviour_detected, misbehaviour_label, misbehaviour_confidence = misbehaviour_flag(combined_comment)
