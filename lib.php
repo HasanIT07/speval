@@ -60,6 +60,7 @@ function speval_update_instance(stdClass $speval, mod_speval_mod_form $mform = n
 function speval_extend_settings_navigation(settings_navigation $settings, navigation_node $spevalnode) {
     global $PAGE;
     global $USER;
+    global $COURSE;
 
 
     // Only add tabs if the activity node exists
@@ -83,6 +84,10 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
             // Add a 'AI Analysis' tab
             $aimodelUrl = new moodle_url('/mod/speval/ai_analysis.php', ['id' => $PAGE->cm->id]);
             $spevalnode->add('AI Analysis', $aimodelUrl, navigation_node::TYPE_SETTING, null, 'spevalai');
+
+            // Add a 'Criteria bank' tab
+            $criteriabankUrl = new moodle_url('/mod/speval/criteria_bank.php', ['id' => $PAGE->cm->id, 'courseid' => $COURSE->id]);
+            $spevalnode->add('Criteria Bank', $criteriabankUrl, navigation_node::TYPE_SETTING, null, 'spevalcriteriabank');
         }
     }
 }

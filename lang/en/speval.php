@@ -35,8 +35,17 @@ $string['gradesnotcalculated'] = 'AI analysis is unavailable because grades are 
 $string['progress'] = 'Progress of Submission';
 $string['mustselectgrouping'] = 'You must select a grouping';
 $string['mustselectassign'] = 'You must select an assignment';
-
-
+$string['questiondeleted'] = 'Question deleted sucessfully';
+$string['questionsaved'] = 'Question saved sucessfully';
+$string['pluginname']         = 'Self & Peer Evaluation';
+$string['criteriabank']       = 'Criteria Bank';
+$string['questiontext']       = 'Question Text';
+$string['openquestion']       = 'Open Question?';
+$string['savequestion']       = 'Save Question';
+$string['questionadded']      = 'Question added!';
+$string['edit']               = 'Edit';
+$string['delete']             = 'Delete';
+$string['criteriasaved']      = 'Criteria saved successfully';
 
 $string['other'] = 'Other';
 $string['selectcriteria'] = 'Select Criteria';

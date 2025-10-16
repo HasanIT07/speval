@@ -132,6 +132,7 @@ if ($submission){
 
     } else if (!$start) {
         // Landing page
+        
         echo $renderer->student_landing_page($cm, $speval);
 
     } else {
@@ -145,7 +146,7 @@ if ($submission){
             if (!empty($prefill['criteria1']) || !empty($prefill['comment1'])) {
                 echo $renderer->draft_loaded_notification();
             }
-            echo $renderer->evaluation_form($speval, $studentsInGroup, $prefill);
+            echo $renderer->evaluation_form($speval, $studentsInGroup, $prefill, $cm);
         }
     }
 }

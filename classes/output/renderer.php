@@ -45,12 +45,13 @@ class renderer extends plugin_renderer_base {
      * @param array     $prefill associative arrays keyed by field => [peerid => value]
      *   expected keys: criteria1..criteria5, comment1
      */
-    public function evaluation_form($speval, $studentsInGroup, array $prefill = []) {
+    public function evaluation_form($speval, $studentsInGroup, array $prefill = [], $cm) {
         global $USER;
 
         $html  = html_writer::start_div('speval-container');
         $html .= html_writer::tag('h2', 'Self & Peer Evaluation');
-        $html .= html_writer::tag('p', '<b>Please note:</b> Everything you put into this form will be kept strictly confidential.<br>');
+        $html .= $this->output->box(format_module_intro('speval', $speval, $cm->id), 'generalbox');
+
 
         $html .= html_writer::start_tag('form', [
             'method' => 'post',
@@ -120,6 +121,8 @@ class renderer extends plugin_renderer_base {
         $html .= html_writer::end_div(); // .form-actions
 
         $html .= html_writer::end_tag('form');
+
+        $html .= $this->add_comment_validation_js();
         $html .= html_writer::end_div(); // .speval-container
 
         return $html;
@@ -286,4 +289,47 @@ class renderer extends plugin_renderer_base {
 
         return $html;
     }
+
+
+
+private function add_comment_validation_js() {
+    return html_writer::tag('script', "
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('speval-form');
+            if (!form) return;
+
+            // Attach validation to onsubmit
+            form.onsubmit = function() {
+                const textareas = form.querySelectorAll('textarea');
+                let valid = true;
+
+                textareas.forEach(area => {
+                    const words = area.value.trim().split(/\\s+/).filter(Boolean);
+                    const existingWarning = area.nextElementSibling && area.nextElementSibling.classList.contains('word-warning')
+                        ? area.nextElementSibling
+                        : null;
+
+                    if (existingWarning) existingWarning.remove();
+
+                    if (area.name.startsWith('comment') && words.length < 20) {
+                        valid = false;
+                        area.style.border = '2px solid red';
+                        const msg = document.createElement('div');
+                        msg.textContent = 'Please write at least 20 words.';
+                        msg.classList.add('word-warning');
+                        msg.style.color = 'red';
+                        msg.style.fontSize = '0.9em';
+                        msg.style.marginTop = '4px';
+                        area.insertAdjacentElement('afterend', msg);
+                    } else {
+                        area.style.border = '';
+                    }
+                });
+
+                // Returning false prevents form submission
+                return valid;
+            };
+        });
+    ");
+}
 }
