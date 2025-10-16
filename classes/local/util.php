@@ -95,10 +95,13 @@ class util {
         // -------------------------------------------------------------------------------------------------------------------------------
         // Closed criteria questions
         $criteriaRecords = $DB->get_records('speval_criteria', ['spevalid' => $speval->id], 'sortorder ASC');
+        $BankRecords = $DB->get_records_menu('speval_criteria_bank', null, '', 'id, questiontext');
 
         $criteriaObject = new \stdClass();
 
         $i = 0;
+
+
         foreach ($criteriaRecords as $criteria) {
             $i++;
 
@@ -106,20 +109,16 @@ class util {
             if (!empty($criteria->questiontext)){
                 $criteriaObject->{"custom_criteria{$i}"} = $criteria->questiontext;
                 $criteriaObject->{"criteria_text{$i}"} = $criteria->questiontext;
-            
 
             // If questionbankid not NULL and not 0 in the DB, store this value in the property {"predefined_criteria{$i}"}
             } else if  (!empty($criteria->questionbankid)){
                 $criteriaObject->{"predefined_criteria{$i}"} = $criteria->questionbankid ?? 0;
-                $crit_text_record = $DB->get_record('speval_criteria_bank', ['id' => $criteria->questionbankid]);
-                $criteriaObject->{"criteria_text{$i}"} = $crit_text_record->questiontext;
+                $criteriaObject->{"criteria_text{$i}"} = $BankRecords[$criteria->questionbankid] ?? '';
             
             // If both questiontext and questionbankid have empty values, set a default for criteriaObject
             } else {
                 $criteriaObject->{"criteria_text{$i}"} = "";
-            }
-
-            
+            }            
         }
 
         while ($i < self::MAX_CRITERIA){
@@ -148,10 +147,8 @@ class util {
             // If questionbankid not NULL and not 0 in the DB, store this value in the property {"predefined_criteria{$i}"}
             } else if  (!empty($question->questionbankid)){
                 $criteriaObject->{"predefined_openquestion{$j}"} = $question->questionbankid ?? 0;
-                $oq_text_record = $DB->get_record('speval_criteria_bank', ['id' => $question->questionbankid]);
-                $criteriaObject->{"openquestion_text{$j}"} = $oq_text_record->questiontext;
+                $criteriaObject->{"openquestion_text{$j}"} = $BankRecords[$question->questionbankid] ?? '';
             }
-
         }
     
         while ($j < self::MAX_OPENQUESTION){
@@ -178,9 +175,17 @@ class util {
                 $newcriteria = new \stdClass();
                 $newcriteria->spevalid = $spevalid;
                 $newcriteria->sortorder = $i;
-                $newcriteria->questiontext = $data->{"custom_criteria$i"};
-                $newcriteria->questionbankid = $data->{"predefined_criteria$i"};
+
+                if ($data->{"predefined_criteria$i"} > 0){                                      // The predefined is not "other"
+                    $newcriteria->questiontext = NULL;
+                    $newcriteria->questionbankid = $data->{"predefined_criteria$i"};
+                } else {                                                                        // The predefined is "other"
+                    $newcriteria->questiontext = $data->{"custom_criteria$i"};
+                    $newcriteria->questionbankid = 0;
+                }
+
                 $DB->insert_record('speval_criteria', $newcriteria);
+
             } else {
                 if ($data->{"predefined_criteria$i"} > 0){                                      // The predefined is not "other"
                     $existing->questiontext   = NULL;
@@ -200,17 +205,22 @@ class util {
                 $newoq = new \stdClass();
                 $newoq->spevalid = $spevalid;
                 $newoq->sortorder = $i;
-                $newoq->questiontext = $data->{"custom_oq$i"}; //  !!!!! If not set at all (a predefined opption is used) in a new activity this throws error
-                //Warning: Undefined property: stdClass::$custom_oq1 in C:\xampp\htdocs\moodle\mod\speval\classes\local\util.php on line 203
-                //Warning: Undefined property: stdClass::$custom_oq2 in C:\xampp\htdocs\moodle\mod\speval\classes\local\util.php on line 203
-                $newoq->questionbankid = $data->{"predefined_oq$i"};
+                
+                if ($data->{"predefined_openquestion$i"} > 0){                                      // The predefined is not "other"
+                    $newoq->questiontext = NULL;
+                    $newoq->questionbankid = $data->{"predefined_openquestion$i"};
+                } else {                                                                        // The predefined is "other"
+                    $newoq->questiontext = $data->{"custom_openquestion$i"};
+                    $newoq->questionbankid = 0;
+                }
+                
                 $DB->insert_record('speval_openquestion', $newoq);
             } else {
-                if ($data->{"predefined_oq$i"} > 0){                                      // The predefined is not "other"
+                if ($data->{"predefined_openquestion$i"} > 0){                                      // The predefined is not "other"
                     $existing->questiontext   = NULL;
-                    $existing->questionbankid = $data->{"predefined_oq$i"};
+                    $existing->questionbankid = $data->{"predefined_openquestion$i"};
                 } else {                                                                        // The predefined is "other"
-                    $existing->questiontext   = $data->{"custom_oq$i"};
+                    $existing->questiontext   = $data->{"custom_openquestion$i"};
                     $existing->questionbankid = 0;
                 }
 

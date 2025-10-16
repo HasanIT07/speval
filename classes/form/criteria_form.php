@@ -50,8 +50,8 @@ class criteria_form extends \moodleform {
         // ----------------------------------------------------------------------------------------------------------------------------------
         // Loop through open questions
         for ($j = 1; $j <= $n_openquestion; $j++) {
-            $oq_fieldname = "predefined_oq{$j}";
-            $oq_customfield = "custom_oq{$j}";
+            $oq_fieldname = "predefined_openquestion{$j}";
+            $oq_customfield = "custom_openquestion{$j}";
 
             // Dropdown from bank
             $mform->addElement('select', $oq_fieldname, "open question {$j}", $bankoptions);

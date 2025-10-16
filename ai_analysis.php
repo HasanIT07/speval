@@ -12,6 +12,7 @@ $PAGE->set_cm($cm, $course);
 $PAGE->set_context($context);
 $PAGE->set_title('AI Analysis Results');
 $PAGE->set_heading($course->fullname);
+$PAGE->activityheader->disable();                                               // Disable the standard activity header 
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading('AI Analysis Results');

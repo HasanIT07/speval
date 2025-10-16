@@ -65,6 +65,33 @@
         </INDEXES>
     </TABLE>
 
+    <TABLE NAME="speval_draft" COMMENT="Stores autosaved draft evaluation submissions">
+        <FIELDS>
+            <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
+            <FIELD NAME="userid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Evaluator who owns the draft"/>
+            <FIELD NAME="peerid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Peer associated with this draft evaluation"/>
+            <FIELD NAME="activityid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="The SPEval activity instance ID"/>
+            <FIELD NAME="criteria1" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="false" COMMENT="Draft score"/>
+            <FIELD NAME="criteria2" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="false" COMMENT="Draft score"/>
+            <FIELD NAME="criteria3" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="false" COMMENT="Draft score"/>
+            <FIELD NAME="criteria4" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="false" COMMENT="Draft score"/>
+            <FIELD NAME="criteria5" TYPE="int" LENGTH="4" SEQUENCE="false" NOTNULL="false" COMMENT="Draft score"/>
+            <FIELD NAME="comment1" TYPE="text" SEQUENCE="false" NOTNULL="false" COMMENT="Draft comment"/>
+            <FIELD NAME="comment2" TYPE="text" SEQUENCE="false" NOTNULL="false" COMMENT="Draft comment"/>
+            <FIELD NAME="timecreated" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Timestamp when draft was first created"/>
+            <FIELD NAME="timemodified" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Timestamp of last save"/>
+        </FIELDS>
+        <KEYS>
+            <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            <KEY NAME='activityid_fk' TYPE='foreign' FIELDS='activityid' REFTABLE='speval' REFFIELDS='id'/>
+            <KEY NAME='userid_fk' TYPE='foreign' FIELDS='userid' REFTABLE='user' REFFIELDS='id'/>
+            <KEY NAME='peerid_fk' TYPE='foreign' FIELDS='peerid' REFTABLE='user' REFFIELDS='id'/>
+        </KEYS>
+        <INDEXES>
+            <INDEX NAME="user_peer_activity_unique" UNIQUE="true" FIELDS="userid, peerid, activityid"/>
+        </INDEXES>
+    </TABLE>
+
     <TABLE NAME="speval_grades" COMMENT="Stores calculated grades for peer evaluations">
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>

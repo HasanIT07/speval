@@ -110,8 +110,14 @@ class mod_speval_mod_form extends moodleform_mod {
 
 		// Obtain fields from the form
     	$linkoption = $data['linkoption'];
-    	$grouping = $data['grouping'];
-		$linkedassign = $data['linkedassign'];
+
+		if (isset($data['grouping'])){
+			$grouping = $data['grouping'];
+		}
+
+		if (isset($data['linkedassign'])){
+			$linkedassign = $data['linkedassign'];
+		}
 		
 		// Prevent not linking a grouping
 		if ($linkoption == 0 && $grouping == 0){
@@ -125,7 +131,6 @@ class mod_speval_mod_form extends moodleform_mod {
 
         return $errors;
     }
-
 
 
 	public function data_preprocessing(&$default_values) {

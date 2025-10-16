@@ -13,6 +13,7 @@ $courseid = $cm->course;
 $PAGE->set_url('/mod/speval/progress.php', ['id' => $id]);
 $PAGE->set_context($context);
 $PAGE->set_cm($cm);
+$PAGE->activityheader->disable();
 
 // Only teachers for now
 require_capability('mod/speval:addinstance', $context);
