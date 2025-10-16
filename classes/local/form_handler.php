@@ -211,17 +211,17 @@ class form_handler {
             $task = new \mod_speval\task\ai_analysis_task();
             $task->set_custom_data(['activityid' => $activityid]);
             \core\task\manager::queue_adhoc_task($task);
-            debugging("AI analysis task queued successfully for activity {$activityid}", DEBUG_DEVELOPER);
+            // Silently queued; avoid emitting browser output
         } catch (\Exception $e) { // FIX: Use \Exception
-            debugging("Failed to queue AI analysis task: " . $e->getMessage(), DEBUG_DEVELOPER);
+            // Log to server error log instead of browser
+            error_log('mod_speval: Failed to queue AI analysis task: ' . $e->getMessage());
             
             // Fallback: Run AI analysis directly (synchronous)
-            debugging("Running AI analysis synchronously as fallback", DEBUG_DEVELOPER);
+            // Silent fallback run
             try {
                 $results = \mod_speval\local\ai_service::analyze_evaluations($activityid);
-                debugging("AI analysis completed synchronously. Processed " . count($results) . " results.", DEBUG_DEVELOPER);
             } catch (\Exception $ai_error) { // FIX: Use \Exception
-                debugging("Synchronous AI analysis also failed: " . $ai_error->getMessage(), DEBUG_DEVELOPER);
+                error_log('mod_speval: Synchronous AI analysis failed: ' . $ai_error->getMessage());
             }
         }
     }

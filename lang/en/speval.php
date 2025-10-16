@@ -6,16 +6,25 @@ You can do so from http://localhost/moodle/admin/purgecaches.php
 or click the bookmark in our VM
 */
 
+// ------------------------------------------------------------------------------------------------------
+// General terms
+$string['pluginname'] = 'Self and Peer Evaluation';
+$string['modulename'] = 'Self and Peer Evaluation';
+$string['spename'] = 'SPE Name';
 
+
+// ------------------------------------------------------------------------------------------------------
+// Criteria
 $string['criteria1'] = 'Criteria 1';
 $string['criteria2'] = 'Criteria 2';
 $string['criteria3'] = 'Criteria 3';
 $string['criteria4'] = 'Criteria 4';
 $string['criteria5'] = 'Criteria 5';
 $string['criteriasaved'] = 'Criteria saved successfully.';
-$string['pluginname'] = 'Self and Peer Evaluation';
-$string['modulename'] = 'Self and Peer Evaluation';
-$string['spename'] = 'SPE Name';
+
+
+// ------------------------------------------------------------------------------------------------------
+// Settings 1-5
 $string['linkoption'] = 'Link Option'; 
 $string['standalone'] = 'Standalone Activity'; 
 $string['linktoassignment'] = 'Link to Assignment';
@@ -92,6 +101,9 @@ $string['misbehaviour'] = 'Misbehaviour';
 $string['noresults'] = 'No results to display.';
 $string['nousersfound'] = 'No enrolled users found.';
 $string['id'] = 'ID';
+
+
+// ------------------------------------------------------------------------------------------------------
 // Misbehaviour labels (1..6)
 $string['misbehaviour_1'] = 'Normal or positive teamwork behaviour';
 $string['misbehaviour_2'] = 'Aggressive or hostile behaviour';

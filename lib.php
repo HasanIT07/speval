@@ -81,10 +81,6 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
             $progressUrl = new moodle_url('/mod/speval/progress.php', ['id' => $PAGE->cm->id]);
             $spevalnode->add(get_string('progress', 'mod_speval'), $progressUrl, navigation_node::TYPE_SETTING, null, 'spevalprogress');
 
-            // Add a 'AI Analysis' tab
-            $aimodelUrl = new moodle_url('/mod/speval/ai_analysis.php', ['id' => $PAGE->cm->id]);
-            $spevalnode->add('AI Analysis', $aimodelUrl, navigation_node::TYPE_SETTING, null, 'spevalai');
-
             // Add a 'Criteria bank' tab
             $criteriabankUrl = new moodle_url('/mod/speval/criteria_bank.php', ['id' => $PAGE->cm->id, 'courseid' => $COURSE->id]);
             $spevalnode->add('Criteria Bank', $criteriabankUrl, navigation_node::TYPE_SETTING, null, 'spevalcriteriabank');

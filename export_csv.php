@@ -10,9 +10,33 @@ global $DB;
 
 // Fetch data
 if ($table === 'speval_eval') {
-    $records = $DB->get_records('speval_eval', ['activityid' => $cm->instance]);
-} else if ($table === 'speval_grades') {
-    $records = $DB->get_records('speval_grades', ['activityid' => $cm->instance]);
+    // Use SQL join to combine eval + flag data for current activity
+    $sql = "
+        SELECT 
+            e.id AS evalid,
+            e.activityid,
+            e.userid,
+            e.peerid,
+            e.criteria1,
+            e.criteria2,
+            e.criteria3,
+            e.criteria4,
+            e.criteria5,
+            e.comment1,
+            e.comment2,
+            f.commentdiscrepancy,
+            f.markdiscrepancy,
+            f.quicksubmissiondiscrepancy,
+            f.misbehaviorcategory
+        FROM {speval_eval} e
+        LEFT JOIN {speval_flag_individual} f
+            ON e.activityid = f.activityid
+            AND e.userid = f.userid
+            AND e.peerid = f.peerid
+        WHERE e.activityid = :activityid
+        ORDER BY e.userid, e.peerid
+    ";
+    $records = $DB->get_records_sql($sql, ['activityid' => $cm->instance]);
 } else if ($table === 'speval_flag_individual') {
     $records = $DB->get_records('speval_flag_individual', ['activityid' => $cm->instance]);
 } else {
@@ -26,31 +50,26 @@ header('Content-Disposition: attachment; filename="'.$table.'_'.date('Ymd').'.cs
 $out = fopen('php://output', 'w');
 
 if ($records) {
-    if ($table === 'speval_grades') {
-        // CSV header for grades
-        $header = ['Name', 'criteria1', 'criteria2', 'criteria3', 'criteria4', 'criteria5', 'finalgrade'];
-        fputcsv($out, $header);
 
-        // Fetch users
-        $userids = array_column($records, 'userid');
-        $users = $DB->get_records_list('user', 'id', $userids);
-
-        foreach ($records as $rec) {
-            $name = $users[$rec->userid]->firstname . ' ' . $users[$rec->userid]->lastname;
-            $row = [
-                $name,
-                $rec->criteria1,
-                $rec->criteria2,
-                $rec->criteria3,
-                $rec->criteria4,
-                $rec->criteria5,
-                $rec->finalgrade
-            ];
-            fputcsv($out, $row);
-        }
-    } else if ($table === 'speval_eval') {
-        // CSV header for eval
-        $header = ['Evaluator Name', 'Peer Name', 'criteria1', 'criteria2', 'criteria3', 'criteria4', 'criteria5', 'comment1', 'comment2', 'timecreated'];
+    // =====================================
+    // ✅ Export for speval_eval (with flags)
+    // =====================================
+    if ($table === 'speval_eval') {
+        $header = [
+            'Evaluator Name',
+            'Peer Name',
+            'criteria1',
+            'criteria2',
+            'criteria3',
+            'criteria4',
+            'criteria5',
+            'comment1',
+            'comment2',
+            'commentdiscrepancy',
+            'markdiscrepancy',
+            'quicksubmissiondiscrepancy',
+            'misbehaviorcategory'
+        ];
         fputcsv($out, $header);
 
         // Fetch users for evaluator and peer
@@ -63,8 +82,13 @@ if ($records) {
         $users = $DB->get_records_list('user', 'id', $userids);
 
         foreach ($records as $rec) {
-            $evaluator = $users[$rec->userid]->firstname . ' ' . $users[$rec->userid]->lastname;
-            $peer = $users[$rec->peerid]->firstname . ' ' . $users[$rec->peerid]->lastname;
+            $evaluator = isset($users[$rec->userid]) 
+                ? $users[$rec->userid]->firstname . ' ' . $users[$rec->userid]->lastname 
+                : $rec->userid;
+            $peer = isset($users[$rec->peerid]) 
+                ? $users[$rec->peerid]->firstname . ' ' . $users[$rec->peerid]->lastname 
+                : $rec->peerid;
+
             $row = [
                 $evaluator,
                 $peer,
@@ -75,13 +99,31 @@ if ($records) {
                 $rec->criteria5,
                 $rec->comment1,
                 $rec->comment2,
-                date('Y-m-d H:i:s', $rec->timecreated)
+                (int)$rec->commentdiscrepancy,
+                (int)$rec->markdiscrepancy,
+                (int)$rec->quicksubmissiondiscrepancy,
+                (int)$rec->misbehaviorcategory
             ];
             fputcsv($out, $row);
         }
-    } else if ($table === 'speval_flag_individual') {
-        // CSV header for individual flags
-        $header = ['Evaluator Name', 'Peer Name', 'activityid', 'grouping', 'groupid', 'commentdiscrepancy', 'markdiscrepancy', 'quicksubmissiondiscrepancy', 'misbehaviorcategory', 'timecreated'];
+    }
+
+    // =====================================
+    // ✅ Export for speval_flag_individual
+    // =====================================
+    else if ($table === 'speval_flag_individual') {
+        $header = [
+            'Evaluator Name',
+            'Peer Name',
+            'activityid',
+            'grouping',
+            'groupid',
+            'commentdiscrepancy',
+            'markdiscrepancy',
+            'quicksubmissiondiscrepancy',
+            'misbehaviorcategory',
+            'timecreated'
+        ];
         fputcsv($out, $header);
 
         // Fetch users for evaluator and peer
@@ -96,7 +138,7 @@ if ($records) {
         foreach ($records as $rec) {
             $evaluator = isset($users[$rec->userid]) ? ($users[$rec->userid]->firstname . ' ' . $users[$rec->userid]->lastname) : $rec->userid;
             $peer = isset($users[$rec->peerid]) ? ($users[$rec->peerid]->firstname . ' ' . $users[$rec->peerid]->lastname) : $rec->peerid;
-            $timeformatted = (isset($rec->timecreated) && !empty($rec->timecreated)) ? date('Y-m-d H:i:s', (int)$rec->timecreated) : '';
+            $timeformatted = (!empty($rec->timecreated)) ? date('Y-m-d H:i:s', (int)$rec->timecreated) : '';
             $row = [
                 $evaluator,
                 $peer,

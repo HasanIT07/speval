@@ -169,7 +169,7 @@ class renderer extends plugin_renderer_base {
             $html .= $this->criteria_row("criteria_text{$i}", $i . ". " . $criteriatext, $studentid, $saved);
         }
 
-        // Open Question 1 (gets saved from DB)
+        // Open Question 1 (gets saved from DB)openquestion_text
         $openquestiontext = $criteria_data->{"openquestion_text1"};
 
         if ($is_self){

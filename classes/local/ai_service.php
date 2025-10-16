@@ -47,12 +47,7 @@ class ai_service {
         global $DB;
         $data = [];
 
-        // Prefetch final grades for peers in this activity
-        $activityid = reset($evaluations)->activityid;
-        $grades = $DB->get_records('speval_grades', ['activityid' => $activityid], '', 'userid, id, finalgrade');
-        
         foreach ($evaluations as $eval) {
-            $peerfinal = isset($grades[$eval->peerid]) ? (float)$grades[$eval->peerid]->finalgrade : null;
             $data[] = [
                 'id' => $eval->id,
                 'userid' => $eval->userid,
@@ -63,7 +58,6 @@ class ai_service {
                 'criteria3' => $eval->criteria3,
                 'criteria4' => $eval->criteria4,
                 'criteria5' => $eval->criteria5,
-                'finalgrade' => $peerfinal, // pass peer's computed final grade
                 'comment1' => $eval->comment1 ?? '',
                 'comment2' => '', // ignore comment2 per requirements
                 'timecreated' => $eval->timecreated
@@ -105,10 +99,11 @@ private static function call_ai_module($data) {
         $context = stream_context_create($options);
         
         // Make the API call
-        $result = file_get_contents($api_url, false, $context);
+        $result = @file_get_contents($api_url, false, $context);
         
         if ($result === false) {
-            debugging('Failed to call AI API at: ' . $api_url, DEBUG_DEVELOPER);
+            // Log silently; do not emit debugging to the browser (breaks redirects)
+            error_log('mod_speval: Failed to call AI API at: ' . $api_url);
             return null;
         }
         
@@ -116,14 +111,14 @@ private static function call_ai_module($data) {
         $response = json_decode($result, true);
         
         if (json_last_error() !== JSON_ERROR_NONE) {
-            debugging('Invalid JSON response from AI API: ' . $result, DEBUG_DEVELOPER);
+            error_log('mod_speval: Invalid JSON response from AI API');
             return null;
         }
         
         return $response;
         
     } catch (Exception $e) {
-        debugging('Error calling AI API: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        error_log('mod_speval: Error calling AI API: ' . $e->getMessage());
         return null;
     }
 }
@@ -146,10 +141,10 @@ private static function call_ai_module($data) {
             // Get group information for this peer
             $group_info = self::get_peer_group_info($result['peer_id'], $activityid);
 
-            // Map AI result to individual flags record
+            // Map AI result to individual flags record (use peerid consistently)
             $individual = [
                 'userid' => $result['evaluator_id'],
-                'peer' => $result['peer_id'],
+                'peerid' => $result['peer_id'],
                 'activityid' => $activityid,
                 'grouping' => $group_info['groupingid'] ?? null,
                 'groupid' => $group_info['groupid'] ?? null,
@@ -159,10 +154,10 @@ private static function call_ai_module($data) {
                 'timecreated' => $result['analysis_timestamp']
             ];
 
-            // Upsert per unique (userid, peer, activityid)
+            // Upsert per unique (userid, peerid, activityid)
             $existing = $DB->get_record('speval_flag_individual', [
                 'userid' => $individual['userid'],
-                'peer' => $individual['peer'],
+                'peerid' => $individual['peerid'],
                 'activityid' => $activityid
             ]);
 

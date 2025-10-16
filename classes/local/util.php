@@ -148,6 +148,11 @@ class util {
             } else if  (!empty($question->questionbankid)){
                 $criteriaObject->{"predefined_openquestion{$j}"} = $question->questionbankid ?? 0;
                 $criteriaObject->{"openquestion_text{$j}"} = $BankRecords[$question->questionbankid] ?? '';
+            } 
+            
+            // If both questiontext and questionbankid have empty values, set a default for criteriaObject
+            else {
+                $criteriaObject->{"openquestion_text{$j}"} = "";
             }
         }
     

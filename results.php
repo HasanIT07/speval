@@ -39,17 +39,25 @@ echo $OUTPUT->single_button(
         'get'
     );
 
-    echo $OUTPUT->single_button(
-        new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_grades']),
-        'Export Grades CSV',
-        'get'
-    );
+    // echo $OUTPUT->single_button(
+    //     new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_grades']),
+    //     'Export Grades CSV',
+    //     'get'
+    // );
 
     echo $OUTPUT->single_button(
         new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_flag_individual']),
         'Export AI Flags CSV',
         'get'
     );
+
+    // New Import Groups button
+echo $OUTPUT->single_button(
+    new moodle_url('/mod/speval/groupimport/import.php'),
+    'Import Groups',
+    'get'
+);
+
 
 // If there are no submissions yet for this activity, show info and stop
 
