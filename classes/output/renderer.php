@@ -267,12 +267,15 @@ class renderer extends plugin_renderer_base {
         );
     }
 
-    public function display_grade_for_student($user, $speval){
+    public function display_grade_for_student($user, $speval, $cm){
         global $DB;
 
         $html = html_writer::div(
             html_writer::tag('p', 'You have already submitted your evaluation. Thank you!', ['class' => 'alert alert-info'])
         );
+
+        // Add intro description of the activity
+        $html .= $this->output->box(format_module_intro('speval', $speval, $cm->id), 'generalbox');
 
         $html .= html_writer::tag('h3', 'Your Grade');
 

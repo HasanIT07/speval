@@ -45,7 +45,7 @@ $studentHasGrade = $DB->record_exists('speval_grades', [
  * ]
  */
 function speval_load_prefill_from_drafts(\moodle_database $DB, int $activityid, int $userid): array {
-    $records = $DB->get_records('speval_draft', ['activityid' => $activityid, 'userid' => $userid]);
+    $records = $DB->get_records('speval_eval_draft', ['activityid' => $activityid, 'userid' => $userid]);
 
     $prefill = [
         'criteria1' => [],
@@ -86,7 +86,7 @@ echo $OUTPUT->header();
 
 if ($submission){
     if ($studentHasGrade) {
-        echo $renderer->display_grade_for_student($USER, $speval);
+        echo $renderer->display_grade_for_student($USER, $speval, $cm);
     } else {
         echo "This activity has not been graded yet.";
     }
