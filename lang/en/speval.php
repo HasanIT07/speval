@@ -74,7 +74,13 @@ $string['deleteconfirm'] = 'Are you sure you want to delete this submission?';
 
 $string['deletedsub'] = 'Submission deleted sucessfully.';
 
+$string['modulename_help'] = 'The Student Peer Evaluation activity enables students to 
+assess their peers based on defined criteria. It supports transparent grading, automatic result calculation, 
+and AI-assisted analysis to identify discrepancies and ensure fair evaluation.
 
+For a detailed guide on how to use this activity, visit the 
+<a href="http://localhost/moodle/mod/speval/help.php" target="_blank">Student Peer Evaluation Help Page</a>.
+';
 
 $string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put into this form will be kept strictly confidential by the unit coordinator.</div><div> </div>
 <div><strong>Contribution Ratings:</strong></div>

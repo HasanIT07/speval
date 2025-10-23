@@ -94,13 +94,13 @@
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-            <KEY NAME='spevalidid_fk' TYPE='foreign' FIELDS='spevalid' REFTABLE='speval' REFFIELDS='id'/>
+            <KEY NAME='spevalid_fk' TYPE='foreign' FIELDS='spevalid' REFTABLE='spevalid' REFFIELDS='id'/>
             <KEY NAME='userid_fk' TYPE='foreign' FIELDS='userid' REFTABLE='user' REFFIELDS='id'/>
             <KEY NAME='peerid_fk' TYPE='foreign' FIELDS='peerid' REFTABLE='user' REFFIELDS='id'/>
         </KEYS>
         <INDEXES>
             <INDEX NAME="id" UNIQUE="true" FIELDS="id"/>
-            <INDEX NAME="spevalidid" UNIQUE="false" FIELDS="spevalidid"/>
+            <INDEX NAME="spevalid" UNIQUE="false" FIELDS="spevalid"/>
             <INDEX NAME="user_peer_speval_unique" UNIQUE="true" FIELDS="userid, peerid, spevalid"/>
         </INDEXES>
     </TABLE>
