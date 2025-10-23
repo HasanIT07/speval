@@ -45,7 +45,7 @@ $studentHasGrade = $DB->record_exists('speval_grades', [
  * ]
  */
 function speval_load_prefill_from_drafts(\moodle_database $DB, int $activityid, int $userid): array {
-    $records = $DB->get_records('speval_eval_draft', ['activityid' => $activityid, 'userid' => $userid]);
+    $records = $DB->get_records('speval_draft', ['activityid' => $activityid, 'userid' => $userid]);
 
     $prefill = [
         'criteria1' => [],

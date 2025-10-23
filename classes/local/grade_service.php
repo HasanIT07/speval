@@ -1,6 +1,7 @@
 <?php
 namespace mod_speval\local;
 
+
 defined('MOODLE_INTERNAL') || die();
 
 class grade_service {

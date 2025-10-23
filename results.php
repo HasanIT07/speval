@@ -45,12 +45,18 @@ echo $OUTPUT->single_button(
     //     'get'
     // );
 
-    echo $OUTPUT->single_button(
-        new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_flag_individual']),
-        'Export AI Flags CSV',
-        'get'
-    );
+    // echo $OUTPUT->single_button(
+    //     new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_flag_individual']),
+    //     'Export AI Flags CSV',
+    //     'get'
+    // );
 
+    // Publish grades to Moodle gradebook
+    echo $OUTPUT->single_button(
+        new moodle_url('/mod/speval/grade_service.php', ['id' => $cm->id]),
+        'Publish to Gradebook',
+        'post'
+    );
     // New Import Groups button
 echo $OUTPUT->single_button(
     new moodle_url('/mod/speval/groupimport/import.php'),

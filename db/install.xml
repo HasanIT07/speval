@@ -52,6 +52,8 @@
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            <KEY NAME="spevalid_fk" TYPE="foreign" FIELDS="spevalid" REFTABLE="speval" REFFIELDS="id"/>
+            <KEY NAME="questionbankid_fk" TYPE="foreign" FIELDS="questionbankid" REFTABLE="speval_criteria_bank" REFFIELDS="id"/>
         </KEYS>
         <INDEXES>
             <INDEX NAME="spevalid_idx" UNIQUE="false" FIELDS="spevalid"/>
@@ -103,7 +105,7 @@
         </INDEXES>
     </TABLE>
 
-    <TABLE NAME="speval_eval_draft" COMMENT="Stores autosaved draft evaluation submissions">
+    <TABLE NAME="speval_draft" COMMENT="Stores autosaved draft evaluation submissions">
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
             <FIELD NAME="userid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Evaluator who owns the draft"/>

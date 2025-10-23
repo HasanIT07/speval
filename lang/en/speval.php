@@ -55,6 +55,7 @@ $string['questionadded']      = 'Question added!';
 $string['edit']               = 'Edit';
 $string['delete']             = 'Delete';
 $string['criteriasaved']      = 'Criteria saved successfully';
+$string['deleteconfirm']      = 'are you sure you want to delete this submission? you will need to inform student that their submission is deleted';
 
 $string['other'] = 'Other';
 $string['selectcriteria'] = 'Select Criteria';
@@ -69,6 +70,7 @@ $string['overdue_marklate'] = 'Accept but mark as late';
 $string['pluginadministration'] = "Admin";
 
 $string['deleteconfirm'] = 'Are you sure you want to delete this submission?';
+
 
 $string['deletedsub'] = 'Submission deleted sucessfully.';
 
