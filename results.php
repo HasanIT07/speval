@@ -231,14 +231,34 @@ if (!empty($grouped)) {
         ];
 
 		foreach ($rows as $r) {
+            // Create cells with conditional highlighting
+            $markdisc_cell = s($r['markdisc']);
+            $quickdisc_cell = s($r['quickdisc']);
+            $commentdisc_cell = s($r['commentdisc']);
+            $misbehave_cell = s($r['misbehave']);
+            
+            // Highlight cells that contain "Yes" (not "-")
+            if ($r['markdisc'] !== '-') {
+                $markdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['markdisc']) . '</span>';
+            }
+            if ($r['quickdisc'] !== '-') {
+                $quickdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['quickdisc']) . '</span>';
+            }
+            if ($r['commentdisc'] !== '-') {
+                $commentdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['commentdisc']) . '</span>';
+            }
+            if ($r['misbehave'] !== '-') {
+                $misbehave_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['misbehave']) . '</span>';
+            }
+            
             $table->data[] = [
 				s($r['name']),
 				s($r['id']),
 				s($r['final']),
-				s($r['markdisc']),
-                s($r['quickdisc']),
-				s($r['commentdisc']),
-				s($r['misbehave'])
+				$markdisc_cell,
+                $quickdisc_cell,
+				$commentdisc_cell,
+				$misbehave_cell
 			];
 		}
 
