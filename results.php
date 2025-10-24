@@ -163,8 +163,10 @@ foreach ($enrolled_students as $uid => $u) {
 	// Final grade (if exists)
 	$final = isset($grades[$uid]) ? (float)$grades[$uid]->finalgrade : 0.0;
 
+    $has_submission_and_grade = isset($grades[$uid]);
+
 	// Discrepancies
-	$markdisc = ($final < 2.5); // rule provided
+	$markdisc = (0 <$final)&&($final < 2.5); // rule provided
 	$commentdisc = !empty($peerflags[$uid]['comment']);
 
 	$misdisplay = '-';
@@ -185,9 +187,9 @@ foreach ($enrolled_students as $uid => $u) {
         'name' => trim($u->firstname . ' ' . $u->lastname),
 		'id' => $uid,
 		'final' => format_float($final, 2),
-		'markdisc' => $markdisc ? get_string('yes') : get_string('no'),
-        'quickdisc' => !empty($peerflags[$uid]['quick']) ? get_string('yes') : get_string('no'),
-		'commentdisc' => $commentdisc ? get_string('yes') : get_string('no'),
+		'markdisc' => $markdisc ? get_string('yes') : '-',
+        'quickdisc' => !empty($peerflags[$uid]['quick']) ? get_string('yes') : '-',
+		'commentdisc' => $commentdisc ? get_string('yes') : '-',
 		'misbehave' => $misdisplay
 	];
 

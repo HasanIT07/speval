@@ -119,3 +119,5 @@ $string['misbehaviour_3'] = 'Uncooperative or ignoring messages behaviour';
 $string['misbehaviour_4'] = 'Irresponsible or unreliable behaviour';
 $string['misbehaviour_5'] = 'Harassment or inappropriate comments behaviour';
 $string['misbehaviour_6'] = 'Dishonest or plagiarism behaviour';
+
+$string['-']='-';
