@@ -134,66 +134,86 @@ class form_handler {
     // =========================================================================
 
     /**
-     * Saves the current form data as a draft.
-     * This function is called via AJAX periodically.
-     * * @param int $activityid The SPEval activity instance ID.
-     * @param stdClass $user The user object of the evaluator.
-     * @param array $c1 Criteria 1 scores (keyed by peerid).
-     * @param array $c2 Criteria 2 scores (keyed by peerid).
-     * @param array $c3 Criteria 3 scores (keyed by peerid).
-     * @param array $c4 Criteria 4 scores (keyed by peerid).
-     * @param array $c5 Criteria 5 scores (keyed by peerid).
-     * @param array $comments Comments (keyed by peerid).
-     * @return bool True on success.
+     * Saves all evaluations as a draft to the speval_draft table.
+     *
+     * @param int $activityid
+     * @param \stdClass $user
+     * @param array $c1_arr Criteria 1 ratings (peerid => value)
+     * @param array $c2_arr Criteria 2 ratings (peerid => value)
+     * @param array $c3_arr Criteria 3 ratings (peerid => value)
+     * @param array $c4_arr Criteria 4 ratings (peerid => value)
+     * @param array $c5_arr Criteria 5 ratings (peerid => value)
+     * @param array $comments1 Comment 1 text (peerid => value)
+     * @param array $comments2 Comment 2 text (peerid => value)
+     * @return bool
      */
-    public static function save_draft($activityid, $user, $c1, $c2, $c3, $c4, $c5, $comments) {
+    public static function save_draft(int $activityid, \stdClass $user, array $c1_arr, array $c2_arr, array $c3_arr, array $c4_arr, array $c5_arr, array $comments1, array $comments2): bool {
         global $DB;
-        $time = time();
         $success = true;
 
-        // Collect all criteria arrays into one structure
-        $allcriteria = [
-            'criteria1' => $c1, 'criteria2' => $c2, 'criteria3' => $c3,
-            'criteria4' => $c4, 'criteria5' => $c5
-        ];
+        // 1. Compile a master list of all peer IDs present in the submitted data
+        $peerids = array_unique(array_merge(
+            array_keys($c1_arr), array_keys($c2_arr), array_keys($c3_arr), 
+            array_keys($c4_arr), array_keys($c5_arr), 
+            array_keys($comments1), array_keys($comments2)
+        ));
 
-        // The peer IDs are derived from the keys of the criteria arrays
-        $peerids = array_keys($c1);
+        $now = time();
 
+        // 2. Iterate through each peer evaluation submitted
         foreach ($peerids as $peerid) {
-            // Check if a draft record already exists for this (user, peer, activity)
-            $existing_draft = $DB->get_record('speval_draft', [
-                'activityid' => $activityid,
-                'userid'     => $user->id,
-                'peerid'     => $peerid
-            ]);
+            $peerid = (int)$peerid;
+            
+            // Check if a draft record already exists for this user-peer pair
+            $draft = $DB->get_record('speval_draft', ['activityid' => $activityid, 'userid' => $user->id, 'peerid' => $peerid]);
+            
+            // Define data to be saved/updated
+            $record = new \stdClass();
+            $record->activityid = $activityid;
+            $record->userid = $user->id;
+            $record->peerid = $peerid;
+            $record->timemodified = $now;
+            
+            // --- FIX FOR NULL CRITERIA ---
+            // Use array_key_exists() and coalesce operator (??) to ensure a non-NULL integer (0) 
+            // is set if the key is missing in the submitted data.
+            $record->criteria1 = $c1_arr[$peerid] ?? 0;
+            $record->criteria2 = $c2_arr[$peerid] ?? 0;
+            $record->criteria3 = $c3_arr[$peerid] ?? 0;
+            $record->criteria4 = $c4_arr[$peerid] ?? 0; // <<-- FIX
+            $record->criteria5 = $c5_arr[$peerid] ?? 0;
+            
+            // Comments can be empty string, which is fine
+            $record->comment1 = $comments1[$peerid] ?? '';
 
-            $draft_data = (object)[
-                'activityid'  => $activityid,
-                'userid'      => $user->id,
-                'peerid'      => $peerid,
-                'comment1'    => $comments[$peerid] ?? '',
-                // Add comment2 if it's used for draft saving
-                'comment2'    => null, 
-                'timemodified' => $time,
-            ];
-
-            // Add criteria scores
-            foreach ($allcriteria as $field_name => $values) {
-                 // Use null for missing scores to avoid saving '0' prematurely
-                $draft_data->{$field_name} = $values[$peerid] ?? null; 
+            // Comment 2 is only for self-evaluation (peerid == userid)
+            if ($peerid == $user->id) {
+                 $record->comment2 = $comments2[$peerid] ?? '';
+            } else {
+                // Important: Ensure comment2 is NOT set for peer evaluations if your DB allows NULL
+                // If your DB mandates a value (like criteria4), you must set it to a non-NULL default here too.
+                // Assuming you've already handled the column setup in the install.xml to allow NULL for comment2/peerid.
+                // If comment2 is MANDATORY (NOT NULL) for all, you must set $record->comment2 = '' or 0 here.
             }
+            // -----------------------------
 
-            if ($existing_draft) {
+            if ($draft) {
                 // Update existing draft
-                $draft_data->id = $existing_draft->id;
-                $DB->update_record('speval_draft', $draft_data);
+                $record->id = $draft->id;
+                $update_ok = $DB->update_record('speval_draft', $record);
+                if (!$update_ok) {
+                    $success = false;
+                }
             } else {
                 // Insert new draft
-                $draft_data->timecreated = $time;
-                $DB->insert_record('speval_draft', $draft_data);
+                $record->timecreated = $now;
+                $insert_id = $DB->insert_record('speval_draft', $record, true);
+                if (!$insert_id) {
+                    $success = false;
+                }
             }
         }
+
         return $success;
     }
     
