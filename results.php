@@ -45,12 +45,18 @@ echo $OUTPUT->single_button(
     //     'get'
     // );
 
-    echo $OUTPUT->single_button(
-        new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_flag_individual']),
-        'Export AI Flags CSV',
-        'get'
-    );
+    // echo $OUTPUT->single_button(
+    //     new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_flag']),
+    //     'Export AI Flags CSV',
+    //     'get'
+    // );
 
+    // Publish grades to Moodle gradebook
+    echo $OUTPUT->single_button(
+        new moodle_url('/mod/speval/grade_service.php', ['id' => $cm->id]),
+        'Publish to Gradebook',
+        'post'
+    );
     // New Import Groups button
 echo $OUTPUT->single_button(
     new moodle_url('/mod/speval/groupimport/import.php'),
@@ -90,7 +96,7 @@ if (!$enrolled_students) {
 $grades = $DB->get_records('speval_grades', ['activityid' => $cm->instance], '', 'userid, id, finalgrade, criteria1, criteria2, criteria3, criteria4, criteria5');
 
 // 3) AI flags (individual) for this activity
-$flags = $DB->get_records('speval_flag_individual', ['activityid' => $cm->instance]);
+$flags = $DB->get_records('speval_flag', ['activityid' => $cm->instance]);
 
 // 4) Aggregate flags per student (as peer)
 $peerflags = []; // peerid => aggregated info
@@ -157,8 +163,10 @@ foreach ($enrolled_students as $uid => $u) {
 	// Final grade (if exists)
 	$final = isset($grades[$uid]) ? (float)$grades[$uid]->finalgrade : 0.0;
 
+    $has_submission_and_grade = isset($grades[$uid]);
+
 	// Discrepancies
-	$markdisc = ($final < 2.5); // rule provided
+	$markdisc = (0 <$final)&&($final < 2.5); // rule provided
 	$commentdisc = !empty($peerflags[$uid]['comment']);
 
 	$misdisplay = '-';
@@ -179,9 +187,9 @@ foreach ($enrolled_students as $uid => $u) {
         'name' => trim($u->firstname . ' ' . $u->lastname),
 		'id' => $uid,
 		'final' => format_float($final, 2),
-		'markdisc' => $markdisc ? get_string('yes') : get_string('no'),
-        'quickdisc' => !empty($peerflags[$uid]['quick']) ? get_string('yes') : get_string('no'),
-		'commentdisc' => $commentdisc ? get_string('yes') : get_string('no'),
+		'markdisc' => $markdisc ? get_string('yes') : '-',
+        'quickdisc' => !empty($peerflags[$uid]['quick']) ? get_string('yes') : '-',
+		'commentdisc' => $commentdisc ? get_string('yes') : '-',
 		'misbehave' => $misdisplay
 	];
 
@@ -223,21 +231,41 @@ if (!empty($grouped)) {
         ];
 
 		foreach ($rows as $r) {
+            // Create cells with conditional highlighting
+            $markdisc_cell = s($r['markdisc']);
+            $quickdisc_cell = s($r['quickdisc']);
+            $commentdisc_cell = s($r['commentdisc']);
+            $misbehave_cell = s($r['misbehave']);
+            
+            // Highlight cells that contain "Yes" (not "-")
+            if ($r['markdisc'] !== '-') {
+                $markdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['markdisc']) . '</span>';
+            }
+            if ($r['quickdisc'] !== '-') {
+                $quickdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['quickdisc']) . '</span>';
+            }
+            if ($r['commentdisc'] !== '-') {
+                $commentdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['commentdisc']) . '</span>';
+            }
+            if ($r['misbehave'] !== '-') {
+                $misbehave_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['misbehave']) . '</span>';
+            }
+            
             $table->data[] = [
 				s($r['name']),
 				s($r['id']),
 				s($r['final']),
-				s($r['markdisc']),
-                s($r['quickdisc']),
-				s($r['commentdisc']),
-				s($r['misbehave'])
+				$markdisc_cell,
+                $quickdisc_cell,
+				$commentdisc_cell,
+				$misbehave_cell
 			];
 		}
 
 		echo html_writer::table($table);
 		echo html_writer::end_tag('details');
         $groupindex++;
-	}
+	}   
 } else {
 	echo $OUTPUT->notification(get_string('noresults', 'mod_speval'), 'notifyinfo');
 }

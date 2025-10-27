@@ -43,9 +43,9 @@ class renderer extends plugin_renderer_base {
      * @param \stdClass $speval
      * @param array     $studentsInGroup list of user records (peers + self)
      * @param array     $prefill associative arrays keyed by field => [peerid => value]
-     *   expected keys: criteria1..criteria5, comment1
+     * expected keys: criteria1..criteria5, comment1, comment2
      */
-    public function evaluation_form($speval, $studentsInGroup, array $prefill = [], $cm) {
+    public function evaluation_form($speval, $studentsInGroup, $cm, array $prefill = []) {
         global $USER;
 
         $html  = html_writer::start_div('speval-container');
@@ -66,10 +66,10 @@ class renderer extends plugin_renderer_base {
             'value' => sesskey()
         ]);
 
-        // Optional activityid (handy if needed later)
+        // Optional spevalid (handy if needed later)
         $html .= html_writer::empty_tag('input', [
             'type' => 'hidden',
-            'name' => 'activityid',
+            'name' => 'spevalid',
             'value' => $speval->id
         ]);
 
@@ -83,7 +83,7 @@ class renderer extends plugin_renderer_base {
 
         
         // Show self evaluation first
-        $html .= $this->peer_fields($speval, $USER, 1, $prefill);
+        $html .= $this->peer_fields($speval, $USER, true, $prefill);
 
         foreach ($studentsInGroup as $student) {
             $is_self = ($student->id == $USER->id);
@@ -100,11 +100,12 @@ class renderer extends plugin_renderer_base {
 
         $html .= html_writer::start_div('form-actions');
 
-        // Save draft (bypasses HTML required validation)
+        // Save draft: CHANGED TYPE TO 'button' and ADDED 'id' for JS handling
         $html .= html_writer::tag('button', 'Save draft', [
-            'type' => 'submit',
-            'name' => 'savedraft',
+            'type' => 'button', 
+            'name' => 'savedraft', // Retained for POST data identification
             'value' => '1',
+            'id' => 'speval-draft-btn', 
             'class' => 'btn btn-secondary',
             'formnovalidate' => 'formnovalidate'
         ]);
@@ -128,28 +129,14 @@ class renderer extends plugin_renderer_base {
         return $html;
     }
 
-
-    /**
-    * Purpose:
-    *   Renders a form for a single peer (or self).
-
-    * Used by: 
-    *   this->evaluation_form()
-
-    * Parameters:
-     * @param \stdClass $speval
-     *                  SPE activity instance (record from mdl_speval).
-     * @param \stdClass $student user record
-     * @param bool      $is_self
-     *                  boolean, true if this block is for the current user evaluating themself.
-     * @param array     $prefill as passed to evaluation_form()
-     *                  an array of previously saved values used to fill inputs like
-     *                  $prefill = [
-     *                      'criteria1' => [ <studentid> => <int rating>, ... ],
-     *                      'criteria2' => [ <studentid> => <int rating>, ... ],
-     *                      'comment1'   => [ <studentid> => 'text', ... ],
-     *                  ];
-     */
+    /*
+    * Renders a form for a single peer (or self).
+    *
+    * @param \stdClass $speval
+    * @param \stdClass $student user record
+    * @param bool      $is_self boolean, true if this block is for the current user evaluating themself.
+    * @param array     $prefill array of previously saved values (criteria1..5, comment1, comment2)
+    */
     public function peer_fields($speval, $student, $is_self = false, array $prefill = []) {
         $studentid = $student->id;
         $criteria_data = util::get_criteria_data($speval);
@@ -169,7 +156,7 @@ class renderer extends plugin_renderer_base {
             $html .= $this->criteria_row("criteria_text{$i}", $i . ". " . $criteriatext, $studentid, $saved);
         }
 
-        // Open Question 1 (gets saved from DB)openquestion_text
+        // Open Question 1 (Comment 1)
         $openquestiontext = $criteria_data->{"openquestion_text1"};
 
         if ($is_self){
@@ -177,12 +164,13 @@ class renderer extends plugin_renderer_base {
         }
             
             
-            $saved = isset($prefill['comment1'][$studentid]) ? $prefill['comment1'][$studentid] : '';
-            $html .= html_writer::start_div('form-row');
-            $html .= html_writer::label($openquestiontext, "comment_{$studentid}", false, ['style' => 'font-weight: bold;']);
-            $html .= html_writer::tag('textarea', s($saved), [
-                'name' => "comment[{$studentid}]",
-                'id'   => "comment_{$studentid}",
+        // Comment 1 Textarea (Mandatory for all evaluations)
+        $saved1 = isset($prefill['comment1'][$studentid]) ? $prefill['comment1'][$studentid] : '';
+        $html .= html_writer::start_div('form-row');
+        $html .= html_writer::label($openquestiontext, "comment_{$studentid}", false, ['style' => 'font-weight: bold;']);
+        $html .= html_writer::tag('textarea', s($saved1), [
+            'name' => "comment[{$studentid}]",
+            'id'   => "comment_{$studentid}",
             'rows' => 4,
             'cols' => 160
         ]);
@@ -190,11 +178,13 @@ class renderer extends plugin_renderer_base {
         $html .= '<br>';
         $html .= '<br>';
         
-        // Open Question 2 (for self evaluation only)
+        // Open Question 2 (Comment 2, for self evaluation only)
         if ($is_self){
             $openquestiontext2 = $criteria_data->{"openquestion_text2"};
-            $html .= html_writer::label($openquestiontext2, "comment_{$studentid}", false, ['style' => 'font-weight: bold;']);
-            $html .= html_writer::tag('textarea', s($saved), [
+            $saved2 = isset($prefill['comment2'][$studentid]) ? $prefill['comment2'][$studentid] : ''; 
+
+            $html .= html_writer::label($openquestiontext2, "comment2_{$studentid}", false, ['style' => 'font-weight: bold;']);
+            $html .= html_writer::tag('textarea', s($saved2), [ 
                 'name' => "comment2[{$studentid}]",
                 'id'   => "comment2_{$studentid}",
                 'rows' => 4,
@@ -281,11 +271,11 @@ class renderer extends plugin_renderer_base {
 
         $grade = $DB->get_record('speval_grades', [
             'userid' => $user->id,
-            'activityid' => $speval->id
+            'spevalid' => $speval->id
         ]);
 
         if ($grade) {
-            $html .= html_writer::tag('p', "Final Grade: $grade->finalgrade");
+            $html .= html_writer::tag('p', "Final Grade: $grade->finalgrade / 5.0");
         } else {
             $html .= html_writer::tag('p', "No grade available yet.");
         }
@@ -294,15 +284,65 @@ class renderer extends plugin_renderer_base {
     }
 
 
-
+/**
+ * Adds JavaScript to handle comment validation for final submit and 
+ * manual form submission for the 'Save draft' button.
+ */
 private function add_comment_validation_js() {
     return html_writer::tag('script', "
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('speval-form');
-            if (!form) return;
+            const draftButton = document.getElementById('speval-draft-btn');
+            if (!form || !draftButton) return;
 
-            // Attach validation to onsubmit
-            form.onsubmit = function() {
+            // 1. Create a hidden input to mimic 'savedraft' being set in the POST data
+            // (We keep the original 'savedraft' input with value '1' from PHP for simplicity 
+            // if we were to keep the button type='submit', but since it's now type='button', 
+            // we'll rely on the existing name attribute being sent by the button itself 
+            // OR use a hidden field to control the logic flow more clearly.)
+            
+            // Let's create a hidden input for control flow
+            let savedraftInput = form.querySelector('input[name=\"savedraft_flag\"]');
+            if (!savedraftInput) {
+                savedraftInput = document.createElement('input');
+                savedraftInput.type = 'hidden';
+                savedraftInput.name = 'savedraft_flag';
+                savedraftInput.value = '0';
+                form.appendChild(savedraftInput);
+            }
+
+            // 2. Add click handler to the 'Save draft' button (now type='button')
+            draftButton.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default button action
+                
+                // Temporarily set the hidden input value to trigger the draft saving logic in PHP
+                savedraftInput.value = '1'; 
+                
+                // Ensure the 'savedraft' button's value is included in the POST data
+                draftButton.name = 'savedraft';
+                draftButton.value = '1';
+
+                // Submit the form manually
+                form.submit();
+                
+                // After submission, reset flag for next submit type
+                savedraftInput.value = '0';
+            });
+
+
+            // --- FINAL SUBMISSION VALIDATION LOGIC ---
+
+            // Attach validation to onsubmit (only runs for final submit)
+            form.onsubmit = function(e) {
+                
+                // If the draft button was clicked and the hidden flag is set, skip validation
+                if (savedraftInput.value === '1') {
+                    // This case should be handled by the click handler above, 
+                    // but we ensure no validation runs if the flag is still set.
+                    return true;
+                }
+                
+                // Original Validation logic (for final submit)
                 const textareas = form.querySelectorAll('textarea');
                 let valid = true;
 
@@ -314,6 +354,7 @@ private function add_comment_validation_js() {
 
                     if (existingWarning) existingWarning.remove();
 
+                    // Check for required word count (20 words) for comments
                     if (area.name.startsWith('comment') && words.length < 20) {
                         valid = false;
                         area.style.border = '2px solid red';
@@ -330,6 +371,9 @@ private function add_comment_validation_js() {
                 });
 
                 // Returning false prevents form submission
+                if (!valid) {
+                    e.preventDefault();
+                }
                 return valid;
             };
         });

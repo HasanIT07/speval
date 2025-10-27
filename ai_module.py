@@ -204,7 +204,7 @@ def analyze_single_evaluation(eval_data: Dict) -> Dict:
         'evaluation_id': eval_data.get('id'),
         'peer_id': eval_data.get('peerid'),
         'evaluator_id': eval_data.get('userid'),
-        'activity_id': eval_data.get('activityid'),
+        'activity_id': eval_data.get('spevalid'),
         'misbehaviour_detected': misbehaviour_detected,
         'misbehaviour_label': misbehaviour_label,
         'misbehaviour_confidence': misbehaviour_confidence,
@@ -237,7 +237,7 @@ def analyze_evaluations_batch(evaluations_data: List[Dict]) -> List[Dict]:
                 'evaluation_id': eval_data.get('id'),
                 'peer_id': eval_data.get('peerid'),
                 'evaluator_id': eval_data.get('userid'),
-                'activity_id': eval_data.get('activityid'),
+                'activity_id': eval_data.get('spevalid'),
                 'error': str(e),
                 'analysis_timestamp': int(time.time())
             })
@@ -286,14 +286,14 @@ def evaluate_ai_module_csv(input_csv: str, output_csv: str = "output_dataset.csv
         df = pd.read_csv(input_csv)
         
         # Ensure minimum columns exist
-        required_columns = ["id", "userid", "peerid", "activityid", "comment1", "timecreated"] + CRITERIA
+        required_columns = ["id", "userid", "peerid", "spevalid", "comment1", "timecreated"] + CRITERIA
         for c in required_columns:
             if c not in df.columns:
                 df[c] = np.nan
         
-        # Default activityid if missing
-        if df["activityid"].isna().all():
-            df["activityid"] = default_activityid
+        # Default spevalid if missing
+        if df["spevalid"].isna().all():
+            df["spevalid"] = default_activityid
         
         results = []
         for _, row in df.iterrows():
@@ -303,7 +303,7 @@ def evaluate_ai_module_csv(input_csv: str, output_csv: str = "output_dataset.csv
             # Convert to output format
             output_row = {
                 "id": eval_data.get("id"),
-                "activityid": int(eval_data.get("activityid", default_activityid)),
+                "spevalid": int(eval_data.get("spevalid", default_activityid)),
                 "groupingid": None,
                 "groupid": None,
                 "misbehaviourflag": analysis['misbehaviour_detected'],
@@ -323,13 +323,12 @@ def evaluate_ai_module_csv(input_csv: str, output_csv: str = "output_dataset.csv
         raise
 
 # ======= CLI Interface =======
-# ======= CLI Interface =======
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SmartSPE – AI Module for Moodle Integration")
     parser.add_argument("--input", help="Path to input file (CSV or JSON)")
     parser.add_argument("--output", help="Path to output file (CSV)")
     parser.add_argument("--json", action="store_true", help="Process JSON input from stdin")
-    parser.add_argument("--activityid", type=int, default=3, help="Fallback activity id")
+    parser.add_argument("--spevalid", type=int, default=3, help="Fallback activity id")
     
     args = parser.parse_args()
     
@@ -341,7 +340,7 @@ if __name__ == "__main__":
     elif args.input:
         # CSV mode for testing
         output_file = args.output or "output_dataset.csv"
-        evaluate_ai_module_csv(args.input, output_file, args.activityid)
+        evaluate_ai_module_csv(args.input, output_file, args.spevalid)
         print(f"Results saved to: {output_file}")
     else:
         parser.print_help()

@@ -1,6 +1,7 @@
 <?php
 namespace mod_speval\local;
 
+
 defined('MOODLE_INTERNAL') || die();
 
 class grade_service {
@@ -8,11 +9,11 @@ class grade_service {
     global $DB;
 
     // 1. Get all submissions for this activity
-    $submissions = $DB->get_records('speval_eval', ['activityid' => $cm->instance]);
+    $submissions = $DB->get_records('speval_eval', ['spevalid' => $cm->instance]);
 
     if (!$submissions) {
         // Ensure a grades row exists for every enrolled student with 0s
-        error_log('mod_speval: No submissions found for activityid '.$cm->instance);
+        error_log('mod_speval: No submissions found for spevalid '.$cm->instance);
 
         $enrolled_students = $DB->get_records_sql("
             SELECT u.id
@@ -23,9 +24,9 @@ class grade_service {
         ", ['courseid' => $courseid]);
 
         foreach ($enrolled_students as $student) {
-            $DB->delete_records('speval_grades', ['activityid' => $cm->instance, 'userid' => $student->id]);
+            $DB->delete_records('speval_grades', ['spevalid' => $cm->instance, 'userid' => $student->id]);
             $DB->insert_record('speval_grades', [
-                'userid' => $student->id, 'activityid' => $cm->instance,
+                'userid' => $student->id, 'spevalid' => $cm->instance,
                 'criteria1' => 0, 'criteria2' => 0, 'criteria3' => 0, 'criteria4' => 0, 'criteria5' => 0,
                 'finalgrade' => 0
             ]);
@@ -76,13 +77,13 @@ class grade_service {
 
         // 3. Insert/update grade
         $DB->delete_records('speval_grades', [
-            'activityid' => $cm->instance,
+            'spevalid' => $cm->instance,
             'userid' => $studentid
         ]);
 
         $DB->insert_record('speval_grades', [
             'userid'     => $studentid,
-            'activityid' => $cm->instance,
+            'spevalid' => $cm->instance,
             'criteria1'  => $avg[0],
             'criteria2'  => $avg[1],
             'criteria3'  => $avg[2],
@@ -106,12 +107,12 @@ class grade_service {
     foreach ($enrolled_students as $student) {
         if (!isset($processed_students[$student->id])) {
             $DB->delete_records('speval_grades', [
-                'activityid' => $cm->instance,
+                'spevalid' => $cm->instance,
                 'userid' => $student->id
             ]);
             $DB->insert_record('speval_grades', [
                 'userid'     => $student->id,
-                'activityid' => $cm->instance,
+                'spevalid' => $cm->instance,
                 'criteria1'  => 0,
                 'criteria2'  => 0,
                 'criteria3'  => 0,
@@ -136,7 +137,7 @@ class grade_service {
        // Run AI analysis only if grades exist for this activity
         $ai_results = [];
         global $DB;
-        if ($DB->record_exists('speval_grades', ['activityid' => $cm->instance])) {
+        if ($DB->record_exists('speval_grades', ['spevalid' => $cm->instance])) {
             try {
                 $ai_results = \mod_speval\local\ai_service::analyze_evaluations($cm->instance);
             } catch (\moodle_exception $e) {

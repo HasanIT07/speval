@@ -7,19 +7,19 @@ class ai_service {
     
     /**
      * Analyze all evaluations for an activity using AI
-     * @param int $activityid The SPEval activity ID
+     * @param int $spevalid The SPEval activity ID
      * @return array Analysis results
      */
-    public static function analyze_evaluations($activityid) {
+    public static function analyze_evaluations($spevalid) {
         global $DB;
         
         // Ensure grades exist for this activity before running AI
-        if (!$DB->record_exists('speval_grades', ['activityid' => $activityid])) {
+        if (!$DB->record_exists('speval_grades', ['spevalid' => $spevalid])) {
             throw new \moodle_exception('gradesnotcalculated', 'mod_speval');
         }
 
         // Get all evaluations for this activity
-        $evaluations = $DB->get_records('speval_eval', ['activityid' => $activityid]);
+        $evaluations = $DB->get_records('speval_eval', ['spevalid' => $spevalid]);
         
         if (empty($evaluations)) {
             return [];
@@ -32,7 +32,7 @@ class ai_service {
         $ai_result = self::call_ai_module($analysis_data);
         
         if ($ai_result && isset($ai_result['status']) && $ai_result['status'] === 'success' && !empty($ai_result['results'])) {
-            return self::store_analysis_results($activityid, $ai_result['results']);
+            return self::store_analysis_results($spevalid, $ai_result['results']);
         }
         
         return [];
@@ -52,7 +52,7 @@ class ai_service {
                 'id' => $eval->id,
                 'userid' => $eval->userid,
                 'peerid' => $eval->peerid,
-                'activityid' => $eval->activityid,
+                'spevalid' => $eval->spevalid,
                 'criteria1' => $eval->criteria1,
                 'criteria2' => $eval->criteria2,
                 'criteria3' => $eval->criteria3,
@@ -125,11 +125,11 @@ private static function call_ai_module($data) {
     
     /**
      * Store AI analysis results in database
-     * @param int $activityid
+     * @param int $spevalid
      * @param array $results
      * @return array
      */
-    private static function store_analysis_results($activityid, $results) {
+    private static function store_analysis_results($spevalid, $results) {
         global $DB;
         
         $stored_results = [];
@@ -139,13 +139,13 @@ private static function call_ai_module($data) {
                 continue; // Skip error results
             }
             // Get group information for this peer
-            $group_info = self::get_peer_group_info($result['peer_id'], $activityid);
+            $group_info = self::get_peer_group_info($result['peer_id'], $spevalid);
 
             // Map AI result to individual flags record (use peerid consistently)
             $individual = [
                 'userid' => $result['evaluator_id'],
                 'peerid' => $result['peer_id'],
-                'activityid' => $activityid,
+                'spevalid' => $spevalid,
                 'grouping' => $group_info['groupingid'] ?? null,
                 'groupid' => $group_info['groupid'] ?? null,
                 'commentdiscrepancy' => $result['comment_discrepancy_detected'] ? 1 : 0,
@@ -154,18 +154,18 @@ private static function call_ai_module($data) {
                 'timecreated' => $result['analysis_timestamp']
             ];
 
-            // Upsert per unique (userid, peerid, activityid)
-            $existing = $DB->get_record('speval_flag_individual', [
+            // Upsert per unique (userid, peerid, spevalid)
+            $existing = $DB->get_record('speval_flag', [
                 'userid' => $individual['userid'],
                 'peerid' => $individual['peerid'],
-                'activityid' => $activityid
+                'spevalid' => $spevalid
             ]);
 
             if ($existing) {
                 $individual['id'] = $existing->id;
-                $DB->update_record('speval_flag_individual', (object)$individual);
+                $DB->update_record('speval_flag', (object)$individual);
             } else {
-                $individual['id'] = $DB->insert_record('speval_flag_individual', (object)$individual);
+                $individual['id'] = $DB->insert_record('speval_flag', (object)$individual);
             }
 
             $stored_results[] = $individual;
@@ -177,14 +177,14 @@ private static function call_ai_module($data) {
     /**
      * Get group information for a peer
      * @param int $peerid
-     * @param int $activityid
+     * @param int $spevalid
      * @return array
      */
-    private static function get_peer_group_info($peerid, $activityid) {
+    private static function get_peer_group_info($peerid, $spevalid) {
         global $DB;
         
         // Get the course from the activity
-        $speval = $DB->get_record('speval', ['id' => $activityid]);
+        $speval = $DB->get_record('speval', ['id' => $spevalid]);
         if (!$speval) {
             return ['groupid' => 0, 'groupingid' => 0];
         }

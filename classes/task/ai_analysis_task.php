@@ -7,18 +7,18 @@ class ai_analysis_task extends \core\task\adhoc_task {
     
     public function execute() {
         $data = $this->get_custom_data();
-        $activityid = $data['activityid'];
+        $spevalid = $data['spevalid'];
         
         try {
             // Run AI analysis
-            $results = \mod_speval\local\ai_service::analyze_evaluations($activityid);
+            $results = \mod_speval\local\ai_service::analyze_evaluations($spevalid);
             
             // Log results
-            mtrace("AI analysis completed for activity {$activityid}. Processed " . count($results) . " results.");
+            mtrace("AI analysis completed for activity {$spevalid}. Processed " . count($results) . " results.");
             
             return true;
         } catch (Exception $e) {
-            mtrace("AI analysis failed for activity {$activityid}: " . $e->getMessage());
+            mtrace("AI analysis failed for activity {$spevalid}: " . $e->getMessage());
             return false;
         }
     }

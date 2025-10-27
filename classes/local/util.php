@@ -95,7 +95,7 @@ class util {
         // -------------------------------------------------------------------------------------------------------------------------------
         // Closed criteria questions
         $criteriaRecords = $DB->get_records('speval_criteria', ['spevalid' => $speval->id], 'sortorder ASC');
-        $BankRecords = $DB->get_records_menu('speval_criteria_bank', null, '', 'id, questiontext');
+        $BankRecords = $DB->get_records_menu('speval_bank', null, '', 'id, questiontext');
 
         $criteriaObject = new \stdClass();
 
@@ -217,10 +217,10 @@ class util {
                 } else {                                                                        // The predefined is "other"
                     $newoq->questiontext = $data->{"custom_openquestion$i"};
                     $newoq->questionbankid = 0;
-                }
-                
+                }    
                 $DB->insert_record('speval_openquestion', $newoq);
             } else {
+
                 if ($data->{"predefined_openquestion$i"} > 0){                                      // The predefined is not "other"
                     $existing->questiontext   = NULL;
                     $existing->questionbankid = $data->{"predefined_openquestion$i"};
@@ -229,7 +229,10 @@ class util {
                     $existing->questionbankid = 0;
                 }
 
+                // var_dump($existing);
+                // exit;                
                 $DB->update_record('speval_openquestion', $existing);
+
             }
         }
     }

@@ -31,9 +31,9 @@ function speval_delete_instance($id) {
     global $DB;
 
     $DB->delete_records('speval', ['id' => $id]);
-    $DB->delete_records('speval_eval', ['activityid' => $id]);
-    $DB->delete_records('speval_grades', ['activityid' => $id]);
-    $DB->delete_records('speval_flag_individual', ['activityid' => $id]);
+    $DB->delete_records('speval_eval', ['spevalid' => $id]);
+    $DB->delete_records('speval_grades', ['spevalid' => $id]);
+    $DB->delete_records('speval_flag', ['spevalid' => $id]);
 
     return true;
 }
@@ -81,9 +81,9 @@ function speval_extend_settings_navigation(settings_navigation $settings, naviga
             $progressUrl = new moodle_url('/mod/speval/progress.php', ['id' => $PAGE->cm->id]);
             $spevalnode->add(get_string('progress', 'mod_speval'), $progressUrl, navigation_node::TYPE_SETTING, null, 'spevalprogress');
 
-            // Add a 'Criteria bank' tab
-            $criteriabankUrl = new moodle_url('/mod/speval/criteria_bank.php', ['id' => $PAGE->cm->id, 'courseid' => $COURSE->id]);
-            $spevalnode->add('Criteria Bank', $criteriabankUrl, navigation_node::TYPE_SETTING, null, 'spevalcriteriabank');
+            // Add a 'Question bank' tab
+            $questionbankUrl = new moodle_url('/mod/speval/question_bank.php', ['id' => $PAGE->cm->id, 'courseid' => $COURSE->id]);
+            $spevalnode->add('Question Bank', $questionbankUrl, navigation_node::TYPE_SETTING, null, 'spevalquestionbank');
         }
     }
 }

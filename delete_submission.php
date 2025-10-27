@@ -19,7 +19,7 @@ require_sesskey(); // Check for the security token
 
 // 4. Perform Deletion
 $deleted = $DB->delete_records('speval_eval', [
-    'activityid' => $cm->instance,
+    'spevalid' => $cm->instance,
     'userid' => $userid
 ]);
 

@@ -25,12 +25,12 @@
         </KEYS>
     </TABLE>
 
-    <TABLE NAME="speval_criteria_bank" COMMENT="Bank of evaluation criteria">
+    <TABLE NAME="speval_bank" COMMENT="Bank of evaluation criteria">
         <FIELDS>
-            <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
-            <FIELD NAME="questiontext" TYPE="text" NOTNULL="true" COMMENT="Text of the question"/>
-            <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Course id"/>
-            <FIELD NAME="isopenquestion" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" COMMENT="1=open question, 0=closed"/>
+            <FIELD NAME="id"            TYPE="int"  LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
+            <FIELD NAME="questiontext"  TYPE="text"             SEQUENCE="false" NOTNULL="true" COMMENT="Text of the question"/>
+            <FIELD NAME="courseid"      TYPE="int"  LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Course id"/>
+            <FIELD NAME="isopenquestion" TYPE="int" LENGTH="1" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="1=open question, 0=closed"/>
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -44,14 +44,16 @@
 
     <TABLE NAME="speval_openquestion" COMMENT="Open questions linked to evaluations">
         <FIELDS>
-            <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
-            <FIELD NAME="spevalid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Foreign key to speval activity"/>
-            <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Order of question"/>
-            <FIELD NAME="questiontext" TYPE="text" NOTNULL="true" COMMENT="Text of the question"/>
-            <FIELD NAME="questionbankid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Reference to criteria_bank"/>
+            <FIELD NAME="id"            TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
+            <FIELD NAME="spevalid"      TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Foreign key to speval activity"/>
+            <FIELD NAME="sortorder"     TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" DEFAULT="0" COMMENT="Order of question"/>
+            <FIELD NAME="questiontext"  TYPE="text"            SEQUENCE="false" NOTNULL="false" COMMENT="Text of the question"/>
+            <FIELD NAME="questionbankid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="false" COMMENT="Reference to speval_bank"/>
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            <KEY NAME="spevalid_fk" TYPE="foreign" FIELDS="spevalid" REFTABLE="speval" REFFIELDS="id"/>
+            <KEY NAME="questionbankid_fk" TYPE="foreign" FIELDS="questionbankid" REFTABLE="speval_bank" REFFIELDS="id"/>
         </KEYS>
         <INDEXES>
             <INDEX NAME="spevalid_idx" UNIQUE="false" FIELDS="spevalid"/>
@@ -71,7 +73,7 @@
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             <KEY NAME="spevalid_fk" TYPE="foreign" FIELDS="spevalid" REFTABLE="speval" REFFIELDS="id"/>
-            <KEY NAME="questionbankid_fk" TYPE="foreign" FIELDS="questionbankid" REFTABLE="speval_criteria_bank" REFFIELDS="id"/>
+            <KEY NAME="questionbankid_fk" TYPE="foreign" FIELDS="questionbankid" REFTABLE="speval_bank" REFFIELDS="id"/>
         </KEYS>
     </TABLE>
 
@@ -92,18 +94,18 @@
         </FIELDS>
         <KEYS>
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-            <KEY NAME='spevalidid_fk' TYPE='foreign' FIELDS='spevalid' REFTABLE='speval' REFFIELDS='id'/>
+            <KEY NAME='spevalid_fk' TYPE='foreign' FIELDS='spevalid' REFTABLE='spevalid' REFFIELDS='id'/>
             <KEY NAME='userid_fk' TYPE='foreign' FIELDS='userid' REFTABLE='user' REFFIELDS='id'/>
             <KEY NAME='peerid_fk' TYPE='foreign' FIELDS='peerid' REFTABLE='user' REFFIELDS='id'/>
         </KEYS>
         <INDEXES>
             <INDEX NAME="id" UNIQUE="true" FIELDS="id"/>
-            <INDEX NAME="spevalidid" UNIQUE="false" FIELDS="spevalidid"/>
+            <INDEX NAME="spevalid" UNIQUE="false" FIELDS="spevalid"/>
             <INDEX NAME="user_peer_speval_unique" UNIQUE="true" FIELDS="userid, peerid, spevalid"/>
         </INDEXES>
     </TABLE>
 
-    <TABLE NAME="speval_eval_draft" COMMENT="Stores autosaved draft evaluation submissions">
+    <TABLE NAME="speval_draft" COMMENT="Stores autosaved draft evaluation submissions">
         <FIELDS>
             <FIELD NAME="id" TYPE="int" LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
             <FIELD NAME="userid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Evaluator who owns the draft"/>
@@ -135,11 +137,11 @@
             <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
             <FIELD NAME="userid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
             <FIELD NAME="spevalid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="criteria1" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="criteria2" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="criteria3" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="criteria4" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
-            <FIELD NAME="criteria5" TYPE="int" LENGTH="5" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria1" TYPE="number" LENGTH="10" DECIMALS="2" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria2" TYPE="number" LENGTH="10" DECIMALS="2" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria3" TYPE="number" LENGTH="10" DECIMALS="2" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria4" TYPE="number" LENGTH="10" DECIMALS="2" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
+            <FIELD NAME="criteria5" TYPE="number" LENGTH="10" DECIMALS="2" SEQUENCE="false" NOTNULL="true" DEFAULT="0"/>
             <FIELD NAME="finalgrade" TYPE="number" LENGTH="10" DECIMALS="2" SEQUENCE="false" NOTNULL="true" DEFAULT="0.00"/>
         </FIELDS>
         <KEYS>
@@ -152,7 +154,7 @@
         </INDEXES>
     </TABLE>
 
-    <TABLE NAME="speval_flag_individual" COMMENT="Stores AI flags per evaluator-peer pair">
+    <TABLE NAME="speval_flag" COMMENT="Stores AI flags per evaluator-peer pair">
         <FIELDS>
             <FIELD NAME="id" TYPE="int"     LENGTH="10" SEQUENCE="true" NOTNULL="true" COMMENT="Primary key"/>
             <FIELD NAME="userid" TYPE="int" LENGTH="10" SEQUENCE="false" NOTNULL="true" COMMENT="Evaluator user id"/>
@@ -171,10 +173,10 @@
             <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             <KEY NAME="spevalid_fk" TYPE="foreign" FIELDS="spevalid" REFTABLE="speval" REFFIELDS="id"/>
             <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
-            <KEY NAME="peer_fk" TYPE="foreign" FIELDS="peer" REFTABLE="user" REFFIELDS="id"/>
+            <KEY NAME="peer_fk" TYPE="foreign" FIELDS="peerid" REFTABLE="user" REFFIELDS="id"/>
         </KEYS>
         <INDEXES>
-            <INDEX NAME="uniq_user_peer_speval" UNIQUE="true" FIELDS="userid, peer, spevalid"/>
+            <INDEX NAME="uniq_user_peer_speval" UNIQUE="true" FIELDS="userid, peerid, spevalid"/>
             <INDEX NAME="spevalid" UNIQUE="false" FIELDS="spevalid"/>
         </INDEXES>
     </TABLE>

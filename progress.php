@@ -53,7 +53,7 @@ foreach ($groups as $group) {
     foreach ($students as $student) {
         // Check if the student has any submissions for this activity
         $submissions = $DB->get_records('speval_eval', [
-            'activityid' => $cm->instance,
+            'spevalid' => $cm->instance,
             'userid' => $student->id
         ]);
 
@@ -81,7 +81,7 @@ foreach ($groups as $group) {
                 get_string('delete', 'moodle'), // Use Moodle's standard 'Delete' string
                 [
                     'class'   => 'btn btn-danger btn-sm ml-2', 
-                    'onclick' => 'return confirm("' . get_string('deleteconfirm', 'moodle') . '");' 
+                    'onclick' => 'return confirm("' . get_string('deleteconfirm', 'speval') . '");' 
                 ]
             );
             // Ensure the button is floated right or in a way that separates it visually
