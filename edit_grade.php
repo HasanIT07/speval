@@ -36,7 +36,7 @@ echo html_writer::empty_tag('input', ['type'=>'hidden','name'=>'id','value'=>$cm
 echo html_writer::empty_tag('input', ['type'=>'hidden','name'=>'sesskey','value'=>sesskey()]);
 
 // Get max grade from speval table
-$speval = $DB->get_record('speval', ['id'=>$grade->activityid]);
+$speval = $DB->get_record('speval', ['id'=>$grade->spevalid]);
 $maxgrade = isset($speval->grade) ? $speval->grade : 5; // fallback if not set
 
 // Final grade input only, hide arrows

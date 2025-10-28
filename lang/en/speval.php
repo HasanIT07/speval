@@ -21,7 +21,12 @@ $string['criteria3'] = 'Criteria 3';
 $string['criteria4'] = 'Criteria 4';
 $string['criteria5'] = 'Criteria 5';
 $string['criteriasaved'] = 'Criteria saved successfully.';
-
+$string['duplicatecriteria'] = 'Your already selected this question in other criteria';
+$string['importcsvbutton'] = 'Import questions';
+$string['csvimportsuccess'] = 'CSV questions were imported successfully.';
+$string['importcsvnofile'] = 'No CSV file was uploaded.';
+$string['questionbankimport'] = 'Import questions from CSV';
+$string['errornocsv'] = 'Please upload a CSV file before importing.';
 
 // ------------------------------------------------------------------------------------------------------
 // Settings 1-5
@@ -47,7 +52,7 @@ $string['mustselectassign'] = 'You must select an assignment';
 $string['questiondeleted'] = 'Question deleted sucessfully';
 $string['questionsaved'] = 'Question saved sucessfully';
 $string['pluginname']         = 'Self & Peer Evaluation';
-$string['criteriabank']       = 'Criteria Bank';
+$string['questionbank']       = 'Question Bank';
 $string['questiontext']       = 'Question Text';
 $string['openquestion']       = 'Open Question?';
 $string['savequestion']       = 'Save Question';
@@ -55,6 +60,7 @@ $string['questionadded']      = 'Question added!';
 $string['edit']               = 'Edit';
 $string['delete']             = 'Delete';
 $string['criteriasaved']      = 'Criteria saved successfully';
+$string['deleteconfirm']      = 'are you sure you want to delete this submission? you will need to inform student that their submission is deleted';
 
 $string['other'] = 'Other';
 $string['selectcriteria'] = 'Select Criteria';
@@ -70,9 +76,17 @@ $string['pluginadministration'] = "Admin";
 
 $string['deleteconfirm'] = 'Are you sure you want to delete this submission?';
 
+
 $string['deletedsub'] = 'Submission deleted sucessfully.';
 
 
+$string['modulename_help'] = 'The Student Peer Evaluation activity enables students to 
+assess their peers based on defined criteria. It supports transparent grading, automatic result calculation, 
+and AI-assisted analysis to identify discrepancies and ensure fair evaluation.
+
+For a detailed guide on how to use this activity, visit the 
+<a href="http://localhost/moodle/mod/speval/help.php" target="_blank">Student Peer Evaluation Help Page</a>.
+';
 
 $string['defaultintro'] = '<div><strong>Please note:</strong> Everything you put into this form will be kept strictly confidential by the unit coordinator.</div><div> </div>
 <div><strong>Contribution Ratings:</strong></div>
@@ -102,6 +116,15 @@ $string['noresults'] = 'No results to display.';
 $string['nousersfound'] = 'No enrolled users found.';
 $string['id'] = 'ID';
 
+// ----
+// Timing
+$string['openson'] = 'Activity opens on: {$a}';
+$string['closeson'] = 'Activity closes on: {$a}';
+$string['alwaysopen'] = 'This activity is always open.';
+$string['deletequestion'] = 'Delete Question';
+
+$string['confirmdeletequestion'] = 'Are you sure you want to delete the question "<b>{$a}</b>"?';
+$string['deletewarning'] = 'Deleting this question might affect Speval activities that exist within this unit. Please make sure you do not have any SPE current activities using this question';
 
 // ------------------------------------------------------------------------------------------------------
 // Misbehaviour labels (1..6)
@@ -111,3 +134,4 @@ $string['misbehaviour_3'] = 'Uncooperative or ignoring messages behaviour';
 $string['misbehaviour_4'] = 'Irresponsible or unreliable behaviour';
 $string['misbehaviour_5'] = 'Harassment or inappropriate comments behaviour';
 $string['misbehaviour_6'] = 'Dishonest or plagiarism behaviour';
+$string['-']='-';

@@ -7,19 +7,21 @@ class ai_service {
     
     /**
      * Analyze all evaluations for an activity using AI
-     * @param int $activityid The SPEval activity ID
+     * @param int $spevalid The SPEval activity ID
      * @return array Analysis results
      */
-    public static function analyze_evaluations($activityid) {
+    public static function analyze_evaluations($spevalid, $evaluatorid = null) {
         global $DB;
         
-        // Ensure grades exist for this activity before running AI
-        if (!$DB->record_exists('speval_grades', ['activityid' => $activityid])) {
-            throw new \moodle_exception('gradesnotcalculated', 'mod_speval');
-        }
+        // Note: Grades should be calculated before calling this method
+        // This check is now handled by the calling code
 
-        // Get all evaluations for this activity
-        $evaluations = $DB->get_records('speval_eval', ['activityid' => $activityid]);
+        // Get evaluations for this activity; optionally scope to one evaluator (userid)
+        if ($evaluatorid) {
+            $evaluations = $DB->get_records('speval_eval', ['spevalid' => $spevalid, 'userid' => $evaluatorid]);
+        } else {
+            $evaluations = $DB->get_records('speval_eval', ['spevalid' => $spevalid]);
+        }
         
         if (empty($evaluations)) {
             return [];
@@ -32,7 +34,7 @@ class ai_service {
         $ai_result = self::call_ai_module($analysis_data);
         
         if ($ai_result && isset($ai_result['status']) && $ai_result['status'] === 'success' && !empty($ai_result['results'])) {
-            return self::store_analysis_results($activityid, $ai_result['results']);
+            return self::store_analysis_results($spevalid, $ai_result['results']);
         }
         
         return [];
@@ -52,7 +54,7 @@ class ai_service {
                 'id' => $eval->id,
                 'userid' => $eval->userid,
                 'peerid' => $eval->peerid,
-                'activityid' => $eval->activityid,
+                'spevalid' => $eval->spevalid,
                 'criteria1' => $eval->criteria1,
                 'criteria2' => $eval->criteria2,
                 'criteria3' => $eval->criteria3,
@@ -78,11 +80,17 @@ private static function call_ai_module($data) {
     if (empty($api_url)) {
         $api_url = 'http://localhost:8000/analyze';
     }
-    
+
     try {
         // Prepare JSON data
         $json_data = json_encode($data);
-        
+
+        // VERBOSE LOGGING (temporary)
+        error_log('mod_speval: AI request → ' . $api_url);
+        error_log('mod_speval: AI payload bytes → ' . strlen($json_data));
+        // If payload size is safe for logs, uncomment to log the body:
+        // error_log('mod_speval: AI payload body → ' . $json_data);
+
         // Set up HTTP context
         $options = [
             'http' => [
@@ -92,32 +100,38 @@ private static function call_ai_module($data) {
                 ],
                 'method' => 'POST',
                 'content' => $json_data,
-                'timeout' => 30  // 30 second timeout
+                'timeout' => 30
             ]
         ];
-        
         $context = stream_context_create($options);
-        
+
         // Make the API call
         $result = @file_get_contents($api_url, false, $context);
-        
+
+        // Log HTTP status/headers if available
+        if (isset($http_response_header) && is_array($http_response_header)) {
+            error_log('mod_speval: AI response headers → ' . implode(' | ', $http_response_header));
+        }
+
         if ($result === false) {
-            // Log silently; do not emit debugging to the browser (breaks redirects)
-            error_log('mod_speval: Failed to call AI API at: ' . $api_url);
+            error_log('mod_speval: AI call failed (file_get_contents returned false) at ' . $api_url);
             return null;
         }
-        
+
+        // Optionally log response body (comment in for deep debugging)
+        error_log('mod_speval: AI response body → ' . $result);
+
         // Parse the response
         $response = json_decode($result, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('mod_speval: Invalid JSON response from AI API');
+            error_log('mod_speval: Invalid JSON from AI API: ' . json_last_error_msg());
             return null;
         }
-        
+
         return $response;
-        
-    } catch (Exception $e) {
+
+    } catch (\Exception $e) {
         error_log('mod_speval: Error calling AI API: ' . $e->getMessage());
         return null;
     }
@@ -125,11 +139,11 @@ private static function call_ai_module($data) {
     
     /**
      * Store AI analysis results in database
-     * @param int $activityid
+     * @param int $spevalid
      * @param array $results
      * @return array
      */
-    private static function store_analysis_results($activityid, $results) {
+    private static function store_analysis_results($spevalid, $results) {
         global $DB;
         
         $stored_results = [];
@@ -139,13 +153,13 @@ private static function call_ai_module($data) {
                 continue; // Skip error results
             }
             // Get group information for this peer
-            $group_info = self::get_peer_group_info($result['peer_id'], $activityid);
+            $group_info = self::get_peer_group_info($result['peer_id'], $spevalid);
 
             // Map AI result to individual flags record (use peerid consistently)
             $individual = [
                 'userid' => $result['evaluator_id'],
                 'peerid' => $result['peer_id'],
-                'activityid' => $activityid,
+                'spevalid' => $spevalid,
                 'grouping' => $group_info['groupingid'] ?? null,
                 'groupid' => $group_info['groupid'] ?? null,
                 'commentdiscrepancy' => $result['comment_discrepancy_detected'] ? 1 : 0,
@@ -154,18 +168,18 @@ private static function call_ai_module($data) {
                 'timecreated' => $result['analysis_timestamp']
             ];
 
-            // Upsert per unique (userid, peerid, activityid)
-            $existing = $DB->get_record('speval_flag_individual', [
+            // Upsert per unique (userid, peerid, spevalid)
+            $existing = $DB->get_record('speval_flag', [
                 'userid' => $individual['userid'],
                 'peerid' => $individual['peerid'],
-                'activityid' => $activityid
+                'spevalid' => $spevalid
             ]);
 
             if ($existing) {
                 $individual['id'] = $existing->id;
-                $DB->update_record('speval_flag_individual', (object)$individual);
+                $DB->update_record('speval_flag', (object)$individual);
             } else {
-                $individual['id'] = $DB->insert_record('speval_flag_individual', (object)$individual);
+                $individual['id'] = $DB->insert_record('speval_flag', (object)$individual);
             }
 
             $stored_results[] = $individual;
@@ -177,14 +191,14 @@ private static function call_ai_module($data) {
     /**
      * Get group information for a peer
      * @param int $peerid
-     * @param int $activityid
+     * @param int $spevalid
      * @return array
      */
-    private static function get_peer_group_info($peerid, $activityid) {
+    private static function get_peer_group_info($peerid, $spevalid) {
         global $DB;
         
         // Get the course from the activity
-        $speval = $DB->get_record('speval', ['id' => $activityid]);
+        $speval = $DB->get_record('speval', ['id' => $spevalid]);
         if (!$speval) {
             return ['groupid' => 0, 'groupingid' => 0];
         }
@@ -197,9 +211,13 @@ private static function call_ai_module($data) {
         if (!empty($groups)) {
             foreach ($groups as $grouping => $group_list) {
                 if (!empty($group_list)) {
-                    $groupid = $group_list[0];
-                    $groupingid = $grouping;
-                    break;
+                    // Use reset() to safely retrieve the first element (handles associative arrays)
+                    $first = reset($group_list);
+                    if ($first !== false) {
+                        $groupid = (int)$first;
+                        $groupingid = (int)$grouping;
+                        break;
+                    }
                 }
             }
         }

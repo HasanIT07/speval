@@ -14,7 +14,7 @@ if ($table === 'speval_eval') {
     $sql = "
         SELECT 
             e.id AS evalid,
-            e.activityid,
+            e.spevalid,
             e.userid,
             e.peerid,
             e.criteria1,
@@ -29,16 +29,16 @@ if ($table === 'speval_eval') {
             f.quicksubmissiondiscrepancy,
             f.misbehaviorcategory
         FROM {speval_eval} e
-        LEFT JOIN {speval_flag_individual} f
-            ON e.activityid = f.activityid
+        LEFT JOIN {speval_flag} f
+            ON e.spevalid = f.spevalid
             AND e.userid = f.userid
             AND e.peerid = f.peerid
-        WHERE e.activityid = :activityid
+        WHERE e.spevalid = :spevalid
         ORDER BY e.userid, e.peerid
     ";
-    $records = $DB->get_records_sql($sql, ['activityid' => $cm->instance]);
-} else if ($table === 'speval_flag_individual') {
-    $records = $DB->get_records('speval_flag_individual', ['activityid' => $cm->instance]);
+    $records = $DB->get_records_sql($sql, ['spevalid' => $cm->instance]);
+} else if ($table === 'speval_flag') {
+    $records = $DB->get_records('speval_flag', ['spevalid' => $cm->instance]);
 } else {
     die('Invalid table specified.');
 }
@@ -109,13 +109,13 @@ if ($records) {
     }
 
     // =====================================
-    // ✅ Export for speval_flag_individual
+    // ✅ Export for speval_flag
     // =====================================
-    else if ($table === 'speval_flag_individual') {
+    else if ($table === 'speval_flag') {
         $header = [
             'Evaluator Name',
             'Peer Name',
-            'activityid',
+            'spevalid',
             'grouping',
             'groupid',
             'commentdiscrepancy',
@@ -142,7 +142,7 @@ if ($records) {
             $row = [
                 $evaluator,
                 $peer,
-                $rec->activityid,
+                $rec->spevalid,
                 (int)$rec->grouping,
                 (int)$rec->groupid,
                 (int)$rec->commentdiscrepancy,

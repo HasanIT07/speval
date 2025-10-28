@@ -5,6 +5,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/course/moodleform_mod.php');
+require_once(__DIR__ . '/../../config.php');
 
 class mod_speval_mod_form extends moodleform_mod {
     public function definition() {
@@ -55,6 +56,7 @@ class mod_speval_mod_form extends moodleform_mod {
 		// If not linked, select grouping from course.
 		$groupings = groups_get_all_groupings($COURSE->id);
 		$groupingoptions = [0 => "select grouping"];
+		
 		foreach($groupings as $grouping){
 			$groupingoptions[$grouping->id] = format_string($grouping->name);
 		}
@@ -75,6 +77,21 @@ class mod_speval_mod_form extends moodleform_mod {
 			}
 		}
 
+		// -------------------------------------------------------------------------------
+		// AutoGroup
+		$mform->addElement('header', 'autogroup', 'Autogrouping');
+		$mform->addElement('html',
+			html_writer::link(
+				new moodle_url('/mod/speval/groupimport/import.php', ['id' => $COURSE->id]),
+				'Import Groups',
+				['class' => 'btn btn-secondary',
+ 				'style' => '
+				margin-top: 5px;
+				margin-left: 28px;
+				margin-bottom: 5px;'
+				]
+			)
+		);
 
 		// -------------------------------------------------------------------------------
 		// Timing
@@ -85,8 +102,6 @@ class mod_speval_mod_form extends moodleform_mod {
 		$mform->setType('timeclose', PARAM_INT);
 		$overdueoptions = [
 			'prevent' => get_string('overdue_prevent', 'mod_speval'),
-			'allow' => get_string('overdue_allow', 'mod_speval'),
-			'marklate' => get_string('overdue_marklate', 'mod_speval')
 		];
 		$mform->addElement('select', 'overduehandling', get_string('overduehandling', 'mod_speval'), $overdueoptions);
 		$mform->setType('overduehandling', PARAM_ALPHANUMEXT);

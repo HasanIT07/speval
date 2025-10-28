@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is a reimplementation of a Moodle file - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ $PAGE->set_pagelayout('admin');
 $strimportgroups = get_string('importgroups', 'core_group');
 $importform = new groups_import_form(null, ['id' => $courseid]);
 
-$returnurl = new moodle_url('/mod/speval/view.php', ['id' => $courseid]); // Return to your module’s main page.
+$returnurl = new moodle_url('/user/index.php', ['id' => $courseid]);
 
 if ($importform->is_cancelled()) {
     redirect($returnurl);
@@ -73,7 +73,7 @@ if ($importform->is_cancelled()) {
         'enrolmentkey' => 1,
         'groupingname' => 1,
         'enablemessaging' => 1,
-        'userid' => 1, // ✅ allow user linking
+        'username' => 1, // allow user linking
     ];
 
     // Handle custom fields (unchanged)
@@ -152,15 +152,17 @@ if ($importform->is_cancelled()) {
         $groupid = groups_get_group_by_name($newgroup->courseid, $groupname);
         if ($groupid) {
             // Add user if provided
-            if (!empty($newgroup->userid) && $DB->record_exists('user', ['id' => $newgroup->userid])) {
-                groups_add_member($groupid, $newgroup->userid);
-                echo $OUTPUT->notification("User {$newgroup->userid} added to existing group '$groupname'.", 'notifysuccess');
+            if (!empty($newgroup->username) && $DB->record_exists('user', ['username' => $newgroup->username])) {
+                $user = $DB->get_record('user', ['username' => $newgroup->username]);
+                groups_add_member($groupid, $user->id);
+                echo $OUTPUT->notification("User {$newgroup->username} added to existing group '$groupname'.", 'notifysuccess');
             }
         } else if ($groupid = groups_create_group($newgroup)) {
             echo $OUTPUT->notification("Group '$groupname' created.", 'notifysuccess');
-            if (!empty($newgroup->userid) && $DB->record_exists('user', ['id' => $newgroup->userid])) {
-                groups_add_member($groupid, $newgroup->userid);
-                echo $OUTPUT->notification("User {$newgroup->userid} added to new group '$groupname'.", 'notifysuccess');
+            if (!empty($newgroup->username) && $DB->record_exists('user', ['username' => $newgroup->username])) {
+                $user = $DB->get_record('user', ['username' => $newgroup->username]);
+                groups_add_member($groupid, $user->id);
+                echo $OUTPUT->notification("User {$newgroup->username} added to new group '$groupname'.", 'notifysuccess');
             }
         } else {
             echo $OUTPUT->notification("Error adding group '$groupname'.", 'notifyproblem');

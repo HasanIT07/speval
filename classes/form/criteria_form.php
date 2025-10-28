@@ -18,8 +18,8 @@ class criteria_form extends \moodleform {
         $n_openquestion = $criteriaData->n_openquestion;                                   
 
         // Get options from the bank once
-        $closedquestionBankOptions = $this->get_criteria_bank_options($COURSE);
-        $openquestionBankOptions = $this->get_openquestions_bank_options($COURSE);
+        $closedquestionBankOptions = $this->get_closed_questions_bank_options($COURSE);
+        $openquestionBankOptions = $this->get_open_questions_bank_options($COURSE);
         
 
         // ----------------------------------------------------------------------------------------------------------------------------------
@@ -108,10 +108,10 @@ class criteria_form extends \moodleform {
     /**
      * Get options from criteria bank
      */
-    protected function get_criteria_bank_options($course) {
+    protected function get_closed_questions_bank_options($course) {
         global $DB;
         
-        $records = $DB->get_records('speval_criteria_bank', ['courseid' => $course->id, 'isopenquestion'=> 0], 'id ASC');
+        $records = $DB->get_records('speval_bank', ['courseid' => $course->id, 'isopenquestion'=> 0], 'id ASC');
         $options = [0 => get_string('other', 'mod_speval')]; // default first option
 
         foreach ($records as $record) {
@@ -122,10 +122,10 @@ class criteria_form extends \moodleform {
     }
 
 
-    protected function get_openquestions_bank_options($course) {
+    protected function get_open_questions_bank_options($course) {
         global $DB;
         
-        $records = $DB->get_records('speval_criteria_bank', ['courseid' => $course->id, 'isopenquestion'=> 1], 'id ASC');
+        $records = $DB->get_records('speval_bank', ['courseid' => $course->id, 'isopenquestion'=> 1], 'id ASC');
         $options = [0 => get_string('other', 'mod_speval')]; // default first option
 
         foreach ($records as $record) {

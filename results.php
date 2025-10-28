@@ -25,12 +25,47 @@ echo $OUTPUT->heading(get_string('results', 'speval'));
 // Student View was moved to view.php. By convention moodle does not show tabs for students. Access security is now set at line 10 of this file.
 
 // Teacher/manager view
-//this button is to trigger grade calculation for all students
-echo $OUTPUT->single_button(
-    new moodle_url('/mod/speval/grade_service.php', ['id' => $cm->id]),
-    get_string('gradeall', 'speval'),
-    'post'
-);
+
+// Compute submission completeness for the Grade All button (left of Export CSV)
+$activity = $speval;
+$groupingid_btn = $activity->grouping;
+if ($groupingid_btn) {
+    $groups_btn = groups_get_all_groups($course->id, 0, $groupingid_btn);
+} else {
+    $groups_btn = groups_get_all_groups($course->id);
+}
+$missing_btn = [];
+if (!empty($groups_btn)) {
+    foreach ($groups_btn as $gbtn) {
+        $students_btn = groups_get_members($gbtn->id, 'u.id, u.firstname, u.lastname, u.username');
+        if (!$students_btn) { continue; }
+        foreach ($students_btn as $sbtn) {
+            if (!$DB->record_exists('speval_eval', ['spevalid' => $cm->instance, 'userid' => $sbtn->id])) {
+                $missing_btn[] = trim($sbtn->firstname . ' ' . $sbtn->lastname) . ' (' . $sbtn->username . ')';
+            }
+        }
+    }
+}
+$allsubmitted_btn = empty($missing_btn);
+
+// Render Grade All first (left), with Moodle confirm when incomplete
+if ($allsubmitted_btn) {
+    echo $OUTPUT->single_button(
+        new moodle_url('/mod/speval/grade_service.php', ['id' => $cm->id]),
+        get_string('gradeall', 'speval'),
+        'post'
+    );
+} else {
+    $gradeurl = new moodle_url('/mod/speval/grade_service.php', ['id' => $cm->id]);
+    echo html_writer::start_tag('form', ['id' => 'gradeallform', 'method' => 'post', 'action' => $gradeurl, 'style' => 'display:inline-block;margin-right:8px;']);
+    echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+    echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $cm->id]);
+    echo html_writer::tag('button', get_string('gradeall', 'speval'), ['type' => 'submit', 'id' => 'gradeallbtn', 'class' => 'btn btn-secondary']);
+    echo html_writer::end_tag('form');
+    $confirmmsg = 'Not everyone has submitted their evaluation. Check "Progress of Submission" to see who has not submitted. If you proceed, those students will be graded 0. Do you want to continue?';
+    $js = "require(['core/notification'], function(notification) {\n  var btn = document.getElementById('gradeallbtn');\n  if (!btn) { return; }\n  btn.addEventListener('click', function(e){\n    e.preventDefault();\n    notification.confirm('', " . json_encode($confirmmsg) . ", '" . get_string('yes') . "', '" . get_string('no') . "', function(){ document.getElementById('gradeallform').submit(); });\n  });\n});";
+    $PAGE->requires->js_init_code($js);
+}
 
 // New buttons to export CSV
     echo $OUTPUT->single_button(
@@ -45,23 +80,29 @@ echo $OUTPUT->single_button(
     //     'get'
     // );
 
-    echo $OUTPUT->single_button(
-        new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_flag_individual']),
-        'Export AI Flags CSV',
-        'get'
-    );
+    // echo $OUTPUT->single_button(
+    //     new moodle_url('/mod/speval/export_csv.php', ['id' => $cm->id, 'table' => 'speval_flag']),
+    //     'Export AI Flags CSV',
+    //     'get'
+    // );
 
-    // New Import Groups button
-echo $OUTPUT->single_button(
-    new moodle_url('/mod/speval/groupimport/import.php'),
-    'Import Groups',
-    'get'
-);
+    // Publish grades to Moodle gradebook
+    echo $OUTPUT->single_button(
+        new moodle_url('/mod/speval/grade_service.php', ['id' => $cm->id]),
+        'Publish to Gradebook',
+        'post'
+    );
+    // New Import Groups button (NOW THIS IS ON MOD_FORM)
+// echo $OUTPUT->single_button(
+//     new moodle_url('/mod/speval/groupimport/import.php'),
+//     'Import Groups',
+//     'get'
+// );
 
 
 // If there are no submissions yet for this activity, show info and stop
 
-$hassubmissions = $DB->record_exists('speval_eval', ['activityid' => $cm->instance]);
+$hassubmissions = $DB->record_exists('speval_eval', ['spevalid' => $cm->instance]);
 if (!$hassubmissions) {
 	$sm = get_string_manager();
 	$nosubmsg = 'No submissions have been made for this activity yet.';
@@ -77,22 +118,13 @@ if (!$hassubmissions) {
 
 // Show results: grouped, per-student flags + final grade
 
-// 1) Enrolled students in the course
-$enrolled_students = $DB->get_records_sql("\n    SELECT u.id, u.firstname, u.lastname\n    FROM {user} u\n    JOIN {user_enrolments} ue ON ue.userid = u.id\n    JOIN {enrol} e ON e.id = ue.enrolid\n    WHERE e.courseid = :courseid\n", ['courseid' => $course->id]);
+// 1) Grades for this activity (may be empty if not yet calculated)
+$grades = $DB->get_records('speval_grades', ['spevalid' => $cm->instance], '', 'userid, id, finalgrade, criteria1, criteria2, criteria3, criteria4, criteria5');
 
-if (!$enrolled_students) {
-    echo $OUTPUT->notification(get_string('nousersfound', 'speval'), 'notifyproblem');
-	echo $OUTPUT->footer();
-	exit;
-}
+// 2) AI flags (individual) for this activity
+$flags = $DB->get_records('speval_flag', ['spevalid' => $cm->instance]);
 
-// 2) Grades for this activity (may be empty if not yet calculated)
-$grades = $DB->get_records('speval_grades', ['activityid' => $cm->instance], '', 'userid, id, finalgrade, criteria1, criteria2, criteria3, criteria4, criteria5');
-
-// 3) AI flags (individual) for this activity
-$flags = $DB->get_records('speval_flag_individual', ['activityid' => $cm->instance]);
-
-// 4) Aggregate flags per student (as peer)
+// 3) Aggregate flags per student (as peer)
 $peerflags = []; // peerid => aggregated info
 foreach ($flags as $f) {
 	$peerid = isset($f->peerid) ? $f->peerid : (isset($f->peer) ? $f->peer : 0);
@@ -139,27 +171,58 @@ for ($i = 1; $i <= 6; $i++) {
     }
 }
 
-// 5) Group students by Moodle group for this course
+// 4) Get groups linked to this activity (grouping) - same as progress.php
+$groupingid = $speval->grouping;
+if ($groupingid) {
+    $groups = groups_get_all_groups($course->id, 0, $groupingid);
+} else {
+    $groups = groups_get_all_groups($course->id);
+}
+
+if (!$groups) {
+    echo $OUTPUT->notification('No groups found for this activity.');
+    echo $OUTPUT->footer();
+    exit;
+}
+
+// 4b) Check submission completeness per student (like progress.php) — for warning and table gating
+$missing = [];
+foreach ($groups as $group) {
+    $students = groups_get_members($group->id, 'u.id, u.firstname, u.lastname, u.username');
+    if (!$students) { continue; }
+    foreach ($students as $student) {
+        $has = $DB->record_exists('speval_eval', ['spevalid' => $cm->instance, 'userid' => $student->id]);
+        if (!$has) {
+            $missing[] = trim($student->firstname . ' ' . $student->lastname) . ' (' . $student->username . ')';
+        }
+    }
+}
+$allsubmitted = empty($missing);
+
+// If not all submitted, warn (the Grade All button at top already shows a confirm modal)
+if (!$allsubmitted) {
+    echo $OUTPUT->notification('Some students have not submitted yet: ' . s(implode(', ', $missing)), 'notifywarning');
+}
+
+// 5) Group students by the activity's groups
 $grouped = []; // groupid => list rows
-foreach ($enrolled_students as $uid => $u) {
-	// Determine group for this user
-	$usergroups = groups_get_user_groups($course->id, $uid);
-	$groupid = 0;
-	if (!empty($usergroups)) {
-		foreach ($usergroups as $grouplist) {
-			if (!empty($grouplist)) {
-				$groupid = reset($grouplist);
-				break;
-			}
-		}
-	}
+foreach ($groups as $group) {
+    $students = groups_get_members($group->id, 'u.id, u.firstname, u.lastname, u.username');
+    
+    if (!$students) {
+        continue;
+    }
+    
+    foreach ($students as $student) {
+        $uid = $student->id;
 
 	// Final grade (if exists)
 	$final = isset($grades[$uid]) ? (float)$grades[$uid]->finalgrade : 0.0;
+    $has_submission_and_grade = isset($grades[$uid]);
 
 	// Discrepancies
-	$markdisc = ($final < 2.5); // rule provided
-	$commentdisc = !empty($peerflags[$uid]['comment']);
+    $markdisc = (0 <$final)&&($final < 2.5); // rule provided
+    $commentdisc = !empty($peerflags[$uid]['comment']);
 
 	$misdisplay = '-';
     if (!empty($peerflags[$uid]['misbehaviour_categories'])) {
@@ -171,28 +234,30 @@ foreach ($enrolled_students as $uid => $u) {
             foreach ($cats as $cat) {
                 $names[] = isset($mislabels_map[$cat]) ? $mislabels_map[$cat] : (string)$cat;
             }
-            $misdisplay = implode(', ', $names);
+            // Render each misbehaviour on a new line
+            $misdisplay = implode('<br>', $names);
         }
     }
 
     $row = [
-        'name' => trim($u->firstname . ' ' . $u->lastname),
-		'id' => $uid,
+        'name' => trim($student->firstname . ' ' . $student->lastname),
+		'id' => $student->username,
 		'final' => format_float($final, 2),
-		'markdisc' => $markdisc ? get_string('yes') : get_string('no'),
-        'quickdisc' => !empty($peerflags[$uid]['quick']) ? get_string('yes') : get_string('no'),
-		'commentdisc' => $commentdisc ? get_string('yes') : get_string('no'),
+		'markdisc' => $markdisc ? get_string('yes') : '-',
+        'quickdisc' => !empty($peerflags[$uid]['quick']) ? get_string('yes') : '-',
+		'commentdisc' => $commentdisc ? get_string('yes') : '-',
 		'misbehave' => $misdisplay
 	];
 
-	if (!isset($grouped[$groupid])) {
-		$grouped[$groupid] = [];
+	if (!isset($grouped[$group->id])) {
+		$grouped[$group->id] = [];
 	}
-	$grouped[$groupid][] = $row;
+	$grouped[$group->id][] = $row;
+    }
 }
 
-// 6) Render UI: expandable per group
-if (!empty($grouped)) {
+// 6) Render UI: expandable per group (only show table if all submitted)
+if ($allsubmitted && !empty($grouped)) {
     $groupindex = 0;
     foreach ($grouped as $gid => $rows) {
         $gname = $gid ? groups_get_group_name($gid) : get_string('nogroup', 'speval');
@@ -223,14 +288,37 @@ if (!empty($grouped)) {
         ];
 
 		foreach ($rows as $r) {
+            // Create cells with conditional highlighting
+            $markdisc_cell = s($r['markdisc']);
+            $quickdisc_cell = s($r['quickdisc']);
+            $commentdisc_cell = s($r['commentdisc']);
+            $misbehave_cell = s($r['misbehave']);
+            
+            // Highlight cells that contain "Yes" (not "-")
+            if ($r['markdisc'] !== '-') {
+                $markdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['markdisc']) . '</span>';
+            }
+            if ($r['quickdisc'] !== '-') {
+                $quickdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['quickdisc']) . '</span>';
+            }
+            if ($r['commentdisc'] !== '-') {
+                $commentdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['commentdisc']) . '</span>';
+            }
+            if ($r['misbehave'] !== '-') {
+                // Keep highlighting and center the content; allow <br> for multi-line
+                $misbehave_cell = '<div style="text-align:center;"><span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px; display:inline-block;">' . $r['misbehave'] . '</span></div>';
+            } else {
+                $misbehave_cell = '<div style="text-align:center;">-</div>';
+            }
+            
             $table->data[] = [
 				s($r['name']),
 				s($r['id']),
 				s($r['final']),
-				s($r['markdisc']),
-                s($r['quickdisc']),
-				s($r['commentdisc']),
-				s($r['misbehave'])
+				$markdisc_cell,
+                $quickdisc_cell,
+                $commentdisc_cell,
+                $misbehave_cell
 			];
 		}
 

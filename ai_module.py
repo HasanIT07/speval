@@ -24,16 +24,27 @@ CONF_THRESHOLD = float(os.getenv('SPEVAL_CONF_THRESHOLD', '0.20'))
 GAP_TOLERANCE = float(os.getenv('SPEVAL_GAP_TOLERANCE', '0.70'))
 MIS_WARN_MIN = float(os.getenv('SPEVAL_MIS_WARN_MIN', '0.30'))
 
-# Misbehaviour labels (zero-shot)
+# Misbehaviour labels for display/reporting
 MIS_LABELS = [
     "Normal or positive teamwork behaviour",
-    "Aggressive or hostile behaviour", 
+    "Aggressive or hostile behaviour",
     "Uncooperative or ignoring messages behaviour",
     "Irresponsible or unreliable behaviour",
     "Harassment or inappropriate comments behaviour",
     "Dishonest or plagiarism behaviour",
 ]
 NORMAL_LABEL = MIS_LABELS[0]
+
+# Candidate label phrases given to the zero-shot model (more explicit for better separation)
+# We map model outputs back to the concise display labels above.
+MIS_LABEL_CANDIDATES = {
+    MIS_LABELS[0]: "Normal, respectful, helpful teamwork behaviour",
+    MIS_LABELS[1]: "Aggressive or hostile behaviour (yelling, insults, threats)",
+    MIS_LABELS[2]: "Uncooperative behaviour (ignores messages or instructions, refuses to respond)",
+    MIS_LABELS[3]: "Irresponsible or unreliable behaviour (misses deadlines, fails to complete assigned tasks)",
+    MIS_LABELS[4]: "Harassment or inappropriate comments (offensive or discriminatory remarks)",
+    MIS_LABELS[5]: "Dishonest behaviour such as plagiarism or cheating",
+}
 
 CRITERIA = ["criteria1", "criteria2", "criteria3", "criteria4", "criteria5"]
 
@@ -142,13 +153,26 @@ def misbehaviour_flag(text: str) -> Tuple[bool, str, float]:
         return False, NORMAL_LABEL, 0.0
     
     try:
-        out = zs_pipe()(t, candidate_labels=MIS_LABELS)
+        # Use more explicit candidate phrases and a task-specific hypothesis template
+        candidate_labels = list(MIS_LABEL_CANDIDATES.values())
+        out = zs_pipe()(t, candidate_labels=candidate_labels, multi_label=False, hypothesis_template="In a team project, this behaviour is {}.")
         label = out["labels"][0]
         score = float(out["scores"][0])
         
-        if label == NORMAL_LABEL:
+        # Map model label back to our display labels
+        mapped_label = None
+        for base_label, cand in MIS_LABEL_CANDIDATES.items():
+            if label == cand:
+                mapped_label = base_label
+                break
+        if mapped_label is None and label in MIS_LABELS:
+            mapped_label = label
+        if mapped_label is None:
+            mapped_label = NORMAL_LABEL
+
+        if mapped_label == NORMAL_LABEL:
             return False, label, score
-        return bool(score >= MIS_WARN_MIN), label, score
+        return bool(score >= MIS_WARN_MIN), mapped_label, score
     except Exception as e:
         print(f"Error in misbehaviour detection: {e}", file=sys.stderr)
         return False, NORMAL_LABEL, 0.0
@@ -204,7 +228,7 @@ def analyze_single_evaluation(eval_data: Dict) -> Dict:
         'evaluation_id': eval_data.get('id'),
         'peer_id': eval_data.get('peerid'),
         'evaluator_id': eval_data.get('userid'),
-        'activity_id': eval_data.get('activityid'),
+        'activity_id': eval_data.get('spevalid'),
         'misbehaviour_detected': misbehaviour_detected,
         'misbehaviour_label': misbehaviour_label,
         'misbehaviour_confidence': misbehaviour_confidence,
@@ -237,7 +261,7 @@ def analyze_evaluations_batch(evaluations_data: List[Dict]) -> List[Dict]:
                 'evaluation_id': eval_data.get('id'),
                 'peer_id': eval_data.get('peerid'),
                 'evaluator_id': eval_data.get('userid'),
-                'activity_id': eval_data.get('activityid'),
+                'activity_id': eval_data.get('spevalid'),
                 'error': str(e),
                 'analysis_timestamp': int(time.time())
             })
@@ -286,14 +310,14 @@ def evaluate_ai_module_csv(input_csv: str, output_csv: str = "output_dataset.csv
         df = pd.read_csv(input_csv)
         
         # Ensure minimum columns exist
-        required_columns = ["id", "userid", "peerid", "activityid", "comment1", "timecreated"] + CRITERIA
+        required_columns = ["id", "userid", "peerid", "spevalid", "comment1", "timecreated"] + CRITERIA
         for c in required_columns:
             if c not in df.columns:
                 df[c] = np.nan
         
-        # Default activityid if missing
-        if df["activityid"].isna().all():
-            df["activityid"] = default_activityid
+        # Default spevalid if missing
+        if df["spevalid"].isna().all():
+            df["spevalid"] = default_activityid
         
         results = []
         for _, row in df.iterrows():
@@ -303,7 +327,7 @@ def evaluate_ai_module_csv(input_csv: str, output_csv: str = "output_dataset.csv
             # Convert to output format
             output_row = {
                 "id": eval_data.get("id"),
-                "activityid": int(eval_data.get("activityid", default_activityid)),
+                "spevalid": int(eval_data.get("spevalid", default_activityid)),
                 "groupingid": None,
                 "groupid": None,
                 "misbehaviourflag": analysis['misbehaviour_detected'],
@@ -323,13 +347,12 @@ def evaluate_ai_module_csv(input_csv: str, output_csv: str = "output_dataset.csv
         raise
 
 # ======= CLI Interface =======
-# ======= CLI Interface =======
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SmartSPE – AI Module for Moodle Integration")
     parser.add_argument("--input", help="Path to input file (CSV or JSON)")
     parser.add_argument("--output", help="Path to output file (CSV)")
     parser.add_argument("--json", action="store_true", help="Process JSON input from stdin")
-    parser.add_argument("--activityid", type=int, default=3, help="Fallback activity id")
+    parser.add_argument("--spevalid", type=int, default=3, help="Fallback activity id")
     
     args = parser.parse_args()
     
@@ -341,7 +364,7 @@ if __name__ == "__main__":
     elif args.input:
         # CSV mode for testing
         output_file = args.output or "output_dataset.csv"
-        evaluate_ai_module_csv(args.input, output_file, args.activityid)
+        evaluate_ai_module_csv(args.input, output_file, args.spevalid)
         print(f"Results saved to: {output_file}")
     else:
         parser.print_help()
