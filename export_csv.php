@@ -16,7 +16,7 @@ global $DB;
 function get_misbehaviour_label($category) {
     // 1-indexed mapping (matches results.php lines 152-159)
     $labels = [
-        1 => 'Normal or positive teamwork behaviour',
+        1 => '-',
         2 => 'Aggressive or hostile behaviour',
         3 => 'Uncooperative or ignoring messages behaviour',
         4 => 'Irresponsible or unreliable behaviour',
