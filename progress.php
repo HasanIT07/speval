@@ -28,6 +28,10 @@ $groupingid = $activity->grouping;
 // Fetch groups linked to this activity (grouping)
 if ($groupingid) {
     $groups = groups_get_all_groups($courseid, 0, $groupingid);
+} else if ($activity->linkedassign){
+    $assignment = $DB->get_record('assign', ['id' => $activity->linkedassign, 'course' => $courseid], '*', MUST_EXIST);
+    $groupingid = $assignment->teamsubmissiongroupingid;
+    $groups = groups_get_all_groups($courseid, 0, $groupingid);
 } else {
     $groups = groups_get_all_groups($courseid);
 }

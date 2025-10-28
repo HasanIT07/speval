@@ -8,6 +8,42 @@ $table = required_param('table', PARAM_RAW); // allow underscores
 $cm = get_coursemodule_from_id('speval', $id, 0, false, MUST_EXIST);
 global $DB;
 
+/**
+ * Convert misbehaviour category integer to human-readable label.
+ * These labels match the MIS_LABELS array in ai_module.py
+ */
+function get_misbehaviour_label($category) {
+    $labels = [
+        0 => "-",
+        1 => "Aggressive or hostile behaviour",
+        2 => "Uncooperative or ignoring messages behaviour",
+        3 => "Irresponsible or unreliable behaviour",
+        4 => "Harassment or inappropriate comments behaviour",
+        5 => "Dishonest or plagiarism behaviour",
+    ];
+    
+    if (empty($category) || $category == 0) {
+        return $labels[0]; // Normal behaviour
+    }
+    
+    // Handle multiple categories (stored as comma-separated integers like "1,3")
+    if (is_string($category) && strpos($category, ',') !== false) {
+        $cats = explode(',', $category);
+        $result = [];
+        foreach ($cats as $cat) {
+            $cat = (int)trim($cat);
+            if (isset($labels[$cat])) {
+                $result[] = $labels[$cat];
+            }
+        }
+        return implode('; ', $result);
+    }
+    
+    // Single category
+    $cat = (int)$category;
+    return isset($labels[$cat]) ? $labels[$cat] : "Unknown";
+}
+
 // Fetch data
 if ($table === 'speval_eval') {
     // Use SQL join to combine eval + flag data for current activity
@@ -52,7 +88,7 @@ $out = fopen('php://output', 'w');
 if ($records) {
 
     // =====================================
-    // ✅ Export for speval_eval (with flags)
+    // Export for speval_eval (with flags)
     // =====================================
     if ($table === 'speval_eval') {
         $header = [
@@ -102,7 +138,7 @@ if ($records) {
                 (int)$rec->commentdiscrepancy,
                 (int)$rec->markdiscrepancy,
                 (int)$rec->quicksubmissiondiscrepancy,
-                (int)$rec->misbehaviorcategory
+                get_misbehaviour_label($rec->misbehaviorcategory)
             ];
             fputcsv($out, $row);
         }
@@ -148,7 +184,7 @@ if ($records) {
                 (int)$rec->commentdiscrepancy,
                 (int)$rec->markdiscrepancy,
                 (int)$rec->quicksubmissiondiscrepancy,
-                (int)$rec->misbehaviorcategory,
+                get_misbehaviour_label($rec->misbehaviorcategory),
                 $timeformatted
             ];
             fputcsv($out, $row);
