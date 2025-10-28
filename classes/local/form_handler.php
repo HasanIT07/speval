@@ -236,22 +236,13 @@ class form_handler {
      * @param object $speval The speval activity object
      * @param int $courseid The course ID
      */
-    private static function calculate_grades_and_trigger_ai($speval, $courseid) {
+    private static function trigger_ai_analysis_only($spevalid) {
+        global $USER;
         try {
-            // First calculate grades
-            \mod_speval\local\grade_service::calculate_spe_grade((object)['instance' => $speval->id], $courseid);
-            
-            // Then trigger AI analysis synchronously for the current evaluator so results are immediate
-            global $USER;
-            try {
-                \mod_speval\local\ai_service::analyze_evaluations($speval->id, $USER->id);
-            } catch (\Throwable $syncErr) {
-                // If synchronous call fails for any reason, fall back to an async adhoc task
-                error_log('mod_speval: Synchronous AI analysis failed, queuing task. Error: ' . $syncErr->getMessage());
-                self::trigger_ai_analysis($speval->id);
-            }
-        } catch (\Exception $e) {
-            error_log('mod_speval: Failed to calculate grades or trigger AI: ' . $e->getMessage());
+            \mod_speval\local\ai_service::analyze_evaluations($spevalid, $USER->id);
+        } catch (\Throwable $e) {
+            error_log('mod_speval: AI analysis failed: ' . $e->getMessage());
+            self::trigger_ai_analysis($spevalid);
         }
     }
 

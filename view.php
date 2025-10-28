@@ -8,7 +8,6 @@ require(__DIR__.'/../../config.php');
 
 use mod_speval\local\util;
 use mod_speval\local\form_handler;
-use html_writer; // Added to help format the notification content
 
 $id         = required_param('id', PARAM_INT);
 $cm         = get_coursemodule_from_id('speval', $id, 0, false, MUST_EXIST);
@@ -129,6 +128,50 @@ function speval_format_saved_data(int $userid, array $c_data, array $c1_data, ar
     return $output;
 }
 
+// Handle POST submissions BEFORE any output
+if (!$submission && $_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
+    // Check the 'savedraft' field, which is set to 1 by the JS when the draft button is pressed.
+    $savedraft = optional_param('savedraft', 0, PARAM_INT);
+    $savedraft_flag = optional_param('savedraft_flag', 0, PARAM_INT); 
+
+    if ($savedraft_flag == 1 || $savedraft == 1) { 
+        // 1. DRAFT SAVE PATH
+        
+        // Gather arrays for draft save (must include all potential fields)
+        $c1_arr = optional_param_array('criteria_text1', [], PARAM_INT);
+        $c2_arr = optional_param_array('criteria_text2', [], PARAM_INT);
+        $c3_arr = optional_param_array('criteria_text3', [], PARAM_INT);
+        $c4_arr = optional_param_array('criteria_text4', [], PARAM_INT);
+        $c5_arr = optional_param_array('criteria_text5', [], PARAM_INT);
+        $comments1 = optional_param_array('comment', [], PARAM_RAW); 
+        $comments2 = optional_param_array('comment2', [], PARAM_RAW); 
+
+        $ok = form_handler::save_draft($speval->id, $USER, $c1_arr, $c2_arr, $c3_arr, $c4_arr, $c5_arr, $comments1, $comments2);
+        
+        // Consolidated criteria data for easy display
+        $criteria_data = [
+            'criteria_text1' => $c1_arr, 'criteria_text2' => $c2_arr, 'criteria_text3' => $c3_arr,
+            'criteria_text4' => $c4_arr, 'criteria_text5' => $c5_arr
+        ];
+        
+        // Store draft save status for later display
+        $draft_saved = $ok;
+
+    } else {
+        // 2. FINAL SUBMISSION PATH
+        
+        form_handler::process_submission($course->id, $USER, $speval);
+
+        // Redirect after successful submission (Post/Redirect/Get pattern)
+        redirect(
+            new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'submitted' => 1]),
+            get_string('submissionsuccess', 'mod_speval'),
+            null,
+            \core\output\notification::NOTIFY_SUCCESS
+        );
+    }
+}
+
 echo $OUTPUT->header();
 
 // --- Display open and close time information ---
@@ -174,64 +217,22 @@ if ($submission){
         return;
     }
 
-
-    // Student needs to evaluate (either POSTing or displaying form)
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
-
-        // Check the 'savedraft' field, which is set to 1 by the JS when the draft button is pressed.
-        $savedraft = optional_param('savedraft', 0, PARAM_INT);
-        $savedraft_flag = optional_param('savedraft_flag', 0, PARAM_INT); 
-
-        if ($savedraft_flag == 1 || $savedraft == 1) { 
-            // 1. DRAFT SAVE PATH
-            
-            // Gather arrays for draft save (must include all potential fields)
-            $c1_arr = optional_param_array('criteria_text1', [], PARAM_INT);
-            $c2_arr = optional_param_array('criteria_text2', [], PARAM_INT);
-            $c3_arr = optional_param_array('criteria_text3', [], PARAM_INT);
-            $c4_arr = optional_param_array('criteria_text4', [], PARAM_INT);
-            $c5_arr = optional_param_array('criteria_text5', [], PARAM_INT);
-            $comments1 = optional_param_array('comment', [], PARAM_RAW); 
-            $comments2 = optional_param_array('comment2', [], PARAM_RAW); 
-
-            $ok = form_handler::save_draft($speval->id, $USER, $c1_arr, $c2_arr, $c3_arr, $c4_arr, $c5_arr, $comments1, $comments2);
-            
-            // Consolidated criteria data for easy display
-            $criteria_data = [
-                'criteria_text1' => $c1_arr, 'criteria_text2' => $c2_arr, 'criteria_text3' => $c3_arr,
-                'criteria_text4' => $c4_arr, 'criteria_text5' => $c5_arr
-            ];
-            
-            // --- MODIFIED NOTIFICATION SECTION ---
-            if ($ok) {
-                echo $OUTPUT->notification('Draft Saved.', \core\output\notification::NOTIFY_SUCCESS);
-            } else {
-                echo $OUTPUT->notification('Could not save draft. Please try again.', \core\output\notification::NOTIFY_ERROR);
-            }
-            // -------------------------------------
-
-            // Re-render form with latest draft prefilled
-            $studentsInGroup = util::get_students_in_same_groups($speval->id, $USER);
-            if (empty($studentsInGroup)) {
-                echo $renderer->no_peers_message();
-            } else {
-                $prefill = speval_load_prefill_from_drafts($DB, $speval->id, $USER->id);
-                // Note: The draft notification is already displayed above, so we don't need draft_loaded_notification here.
-                echo $renderer->evaluation_form($speval, $studentsInGroup, $cm, $prefill);
-            }
-
+    // If we just saved a draft, show notification and re-render form
+    if (isset($draft_saved)) {
+        if ($draft_saved) {
+            echo $OUTPUT->notification('Draft Saved.', \core\output\notification::NOTIFY_SUCCESS);
         } else {
-            // 2. FINAL SUBMISSION PATH
-            
-            form_handler::process_submission($course->id, $USER, $speval);
-            echo $renderer->submission_success_notification();
-
-            // Redirect after successful submission (Post/Redirect/Get pattern)
-            redirect(
-                new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'submitted' => 1])
-            );
+            echo $OUTPUT->notification('Could not save draft. Please try again.', \core\output\notification::NOTIFY_ERROR);
         }
 
+        // Re-render form with latest draft prefilled
+        $studentsInGroup = util::get_students_in_same_groups($speval->id, $USER);
+        if (empty($studentsInGroup)) {
+            echo $renderer->no_peers_message();
+        } else {
+            $prefill = speval_load_prefill_from_drafts($DB, $speval->id, $USER->id);
+            echo $renderer->evaluation_form($speval, $studentsInGroup, $cm, $prefill);
+        }
     } else if (!$start) {
         // Landing page (before starting the evaluation)
         

@@ -78,6 +78,7 @@ $string['deleteconfirm'] = 'Are you sure you want to delete this submission?';
 
 
 $string['deletedsub'] = 'Submission deleted sucessfully.';
+$string['submissionsuccess'] = 'Your evaluation has been submitted successfully.';
 
 
 $string['modulename_help'] = 'The Student Peer Evaluation activity enables students to 
