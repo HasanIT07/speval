@@ -8,6 +8,7 @@ class ai_analysis_task extends \core\task\adhoc_task {
     public function execute() {
         $data = $this->get_custom_data();
         $spevalid = $data['spevalid'];
+<<<<<<< HEAD
         $evaluatorid = isset($data['evaluatorid']) ? (int)$data['evaluatorid'] : null;
         
         try {
@@ -17,6 +18,15 @@ class ai_analysis_task extends \core\task\adhoc_task {
             // Log results
             $scope = $evaluatorid ? (" evaluator=" . $evaluatorid) : " (all)";
             mtrace("AI analysis completed for activity {$spevalid}{$scope}. Processed " . count($results) . " results.");
+=======
+        
+        try {
+            // Run AI analysis
+            $results = \mod_speval\local\ai_service::analyze_evaluations($spevalid);
+            
+            // Log results
+            mtrace("AI analysis completed for activity {$spevalid}. Processed " . count($results) . " results.");
+>>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
             
             return true;
         } catch (Exception $e) {

@@ -10,6 +10,7 @@ class ai_service {
      * @param int $spevalid The SPEval activity ID
      * @return array Analysis results
      */
+<<<<<<< HEAD
     public static function analyze_evaluations($spevalid, $evaluatorid = null) {
         global $DB;
         
@@ -22,6 +23,18 @@ class ai_service {
         } else {
             $evaluations = $DB->get_records('speval_eval', ['spevalid' => $spevalid]);
         }
+=======
+    public static function analyze_evaluations($spevalid) {
+        global $DB;
+        
+        // Ensure grades exist for this activity before running AI
+        if (!$DB->record_exists('speval_grades', ['spevalid' => $spevalid])) {
+            throw new \moodle_exception('gradesnotcalculated', 'mod_speval');
+        }
+
+        // Get all evaluations for this activity
+        $evaluations = $DB->get_records('speval_eval', ['spevalid' => $spevalid]);
+>>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
         
         if (empty($evaluations)) {
             return [];

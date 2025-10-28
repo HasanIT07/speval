@@ -92,12 +92,21 @@ if ($allsubmitted_btn) {
         'Publish to Gradebook',
         'post'
     );
+<<<<<<< HEAD
     // New Import Groups button (NOW THIS IS ON MOD_FORM)
 // echo $OUTPUT->single_button(
 //     new moodle_url('/mod/speval/groupimport/import.php'),
 //     'Import Groups',
 //     'get'
 // );
+=======
+    // New Import Groups button
+echo $OUTPUT->single_button(
+    new moodle_url('/mod/speval/groupimport/import.php'),
+    'Import Groups',
+    'get'
+);
+>>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
 
 
 // If there are no submissions yet for this activity, show info and stop
@@ -124,7 +133,17 @@ $grades = $DB->get_records('speval_grades', ['spevalid' => $cm->instance], '', '
 // 2) AI flags (individual) for this activity
 $flags = $DB->get_records('speval_flag', ['spevalid' => $cm->instance]);
 
+<<<<<<< HEAD
 // 3) Aggregate flags per student (as peer)
+=======
+// 2) Grades for this activity (may be empty if not yet calculated)
+$grades = $DB->get_records('speval_grades', ['activityid' => $cm->instance], '', 'userid, id, finalgrade, criteria1, criteria2, criteria3, criteria4, criteria5');
+
+// 3) AI flags (individual) for this activity
+$flags = $DB->get_records('speval_flag', ['activityid' => $cm->instance]);
+
+// 4) Aggregate flags per student (as peer)
+>>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
 $peerflags = []; // peerid => aggregated info
 foreach ($flags as $f) {
 	$peerid = isset($f->peerid) ? $f->peerid : (isset($f->peer) ? $f->peer : 0);
@@ -220,9 +239,16 @@ foreach ($groups as $group) {
 	$final = isset($grades[$uid]) ? (float)$grades[$uid]->finalgrade : 0.0;
     $has_submission_and_grade = isset($grades[$uid]);
 
+    $has_submission_and_grade = isset($grades[$uid]);
+
 	// Discrepancies
+<<<<<<< HEAD
     $markdisc = (0 <$final)&&($final < 2.5); // rule provided
     $commentdisc = !empty($peerflags[$uid]['comment']);
+=======
+	$markdisc = (0 <$final)&&($final < 2.5); // rule provided
+	$commentdisc = !empty($peerflags[$uid]['comment']);
+>>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
 
 	$misdisplay = '-';
     if (!empty($peerflags[$uid]['misbehaviour_categories'])) {
@@ -305,10 +331,14 @@ if ($allsubmitted && !empty($grouped)) {
                 $commentdisc_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['commentdisc']) . '</span>';
             }
             if ($r['misbehave'] !== '-') {
+<<<<<<< HEAD
                 // Keep highlighting and center the content; allow <br> for multi-line
                 $misbehave_cell = '<div style="text-align:center;"><span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px; display:inline-block;">' . $r['misbehave'] . '</span></div>';
             } else {
                 $misbehave_cell = '<div style="text-align:center;">-</div>';
+=======
+                $misbehave_cell = '<span style="background-color: #ffebee; color: #c62828; padding: 2px 4px; border-radius: 3px;">' . s($r['misbehave']) . '</span>';
+>>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
             }
             
             $table->data[] = [
@@ -317,15 +347,20 @@ if ($allsubmitted && !empty($grouped)) {
 				s($r['final']),
 				$markdisc_cell,
                 $quickdisc_cell,
+<<<<<<< HEAD
                 $commentdisc_cell,
                 $misbehave_cell
+=======
+				$commentdisc_cell,
+				$misbehave_cell
+>>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
 			];
 		}
 
 		echo html_writer::table($table);
 		echo html_writer::end_tag('details');
         $groupindex++;
-	}
+	}   
 } else {
 	echo $OUTPUT->notification(get_string('noresults', 'mod_speval'), 'notifyinfo');
 }

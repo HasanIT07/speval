@@ -73,7 +73,11 @@ if ($importform->is_cancelled()) {
         'enrolmentkey' => 1,
         'groupingname' => 1,
         'enablemessaging' => 1,
+<<<<<<< HEAD
         'username' => 1, // allow user linking
+=======
+        'username' => 1, // ✅ allow user linking
+>>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
     ];
 
     // Handle custom fields (unchanged)
