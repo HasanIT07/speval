@@ -175,6 +175,10 @@ for ($i = 1; $i <= 6; $i++) {
 $groupingid = $speval->grouping;
 if ($groupingid) {
     $groups = groups_get_all_groups($course->id, 0, $groupingid);
+} else if ($activity->linkedassign){
+    $assignment = $DB->get_record('assign', ['id' => $speval->linkedassign, 'course' => $speval->course], '*', MUST_EXIST);
+    $groupingid = $assignment->teamsubmissiongroupingid;
+    $groups = groups_get_all_groups($speval->course, 0, $groupingid);
 } else {
     $groups = groups_get_all_groups($course->id);
 }
@@ -201,7 +205,7 @@ $allsubmitted = empty($missing);
 
 // If not all submitted, warn (the Grade All button at top already shows a confirm modal)
 if (!$allsubmitted) {
-    echo $OUTPUT->notification('Some students have not submitted yet: ' . s(implode(', ', $missing)), 'notifywarning');
+    echo $OUTPUT->notification('Some students have not submitted yet: ' . s(implode(', ', $missing)), 'warning');
 }
 
 // 5) Group students by the activity's groups
@@ -329,7 +333,7 @@ if ($allsubmitted && !empty($grouped)) {
         $groupindex++;
 	}   
 } else {
-	echo $OUTPUT->notification(get_string('noresults', 'mod_speval'), 'notifyinfo');
+	echo $OUTPUT->notification(get_string('noresults', 'mod_speval'), 'warning');
 }
 
 // Output end

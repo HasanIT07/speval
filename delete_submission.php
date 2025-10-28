@@ -23,6 +23,16 @@ $deleted = $DB->delete_records('speval_eval', [
     'userid' => $userid
 ]);
 
+$DB->delete_records('speval_flag', [
+    'spevalid' => $cm->instance,
+    'userid' => $userid
+]);
+
+$DB->delete_records('speval_grades', [
+    'spevalid' => $cm->instance,
+    'userid' => $userid
+]);
+
 // 5. Redirect and notify
 if ($deleted) {
     // Notify success

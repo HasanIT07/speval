@@ -225,6 +225,11 @@ if ($submission){
             
             form_handler::process_submission($course->id, $USER, $speval);
             echo $renderer->submission_success_notification();
+
+            // Redirect after successful submission (Post/Redirect/Get pattern)
+            redirect(
+                new moodle_url('/mod/speval/view.php', ['id' => $cm->id, 'submitted' => 1])
+            );
         }
 
     } else if (!$start) {

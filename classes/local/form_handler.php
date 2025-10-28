@@ -124,7 +124,15 @@ class form_handler {
         }
 
         // Calculate grades first, then trigger AI analysis
-        self::calculate_grades_and_trigger_ai($speval, $courseid);
+        // self::calculate_grades_and_trigger_ai($speval, $courseid);
+        global $USER;
+        try {
+            \mod_speval\local\ai_service::analyze_evaluations($speval->id, $USER->id);
+        } catch (\Throwable $syncErr) {
+            // If synchronous call fails for any reason, fall back to an async adhoc task
+            error_log('mod_speval: Synchronous AI analysis failed, queuing task. Error: ' . $syncErr->getMessage());
+            self::trigger_ai_analysis($speval->id);
+        }
 
         // Grade update logic could go in a separate grade_service class.
     }
