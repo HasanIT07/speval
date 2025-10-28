@@ -8,13 +8,8 @@ $cmid = required_param('id', PARAM_INT);
 $cm = get_coursemodule_from_id('speval', $cmid, 0, false, MUST_EXIST);
 $context = context_module::instance($cm->id);
 
-<<<<<<< HEAD
 // 1. Calculate and update internal speval_grades only (AI runs on submission, not here)
 \mod_speval\local\grade_service::calculate_spe_grade($cm, $cm->course);
-=======
-// 1. Calculate and update internal speval_grades + AI analysis
-$ai_results = \mod_speval\local\grade_service::calculate_spe_grade_with_ai($cm, $cm->course);
->>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
 
 // 2. Fetch all grades for this activity
 $grades = $DB->get_records('speval_grades', ['spevalid' => $cm->instance]);

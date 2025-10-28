@@ -255,13 +255,9 @@ class form_handler {
         try {
             // Try to queue AI analysis task
             $task = new \mod_speval\task\ai_analysis_task();
-<<<<<<< HEAD
             // Scope to current evaluator (the logged-in user), so we only analyze their batch
             global $USER;
             $task->set_custom_data(['spevalid' => $spevalid, 'evaluatorid' => $USER->id]);
-=======
-            $task->set_custom_data(['spevalid' => $spevalid]);
->>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
             \core\task\manager::queue_adhoc_task($task);
             // Silently queued; avoid emitting browser output
         } catch (\Exception $e) { // FIX: Use \Exception
@@ -271,12 +267,8 @@ class form_handler {
             // Fallback: Run AI analysis directly (synchronous)
             // Silent fallback run
             try {
-<<<<<<< HEAD
                 global $USER;
                 $results = \mod_speval\local\ai_service::analyze_evaluations($spevalid, $USER->id);
-=======
-                $results = \mod_speval\local\ai_service::analyze_evaluations($spevalid);
->>>>>>> a5537d46769ff4ec46cbc417d07930ca7d693ef3
             } catch (\Exception $ai_error) { // FIX: Use \Exception
                 error_log('mod_speval: Synchronous AI analysis failed: ' . $ai_error->getMessage());
             }
